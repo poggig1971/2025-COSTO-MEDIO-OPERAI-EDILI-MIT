@@ -578,6 +578,123 @@ body {
   .main { padding: 12px; }
 }
 
+/* ─── MODAL ISTRUZIONI ───────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.45);
+  z-index: 500;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 16px 24px;
+  overflow-y: auto;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 24px 60px rgba(15,23,42,.18);
+  overflow: hidden;
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:none; } }
+
+.modal-header {
+  background: var(--blue);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+.modal-header-close {
+  width: 28px; height: 28px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s;
+}
+.modal-header-close:hover { background: rgba(255,255,255,.22); }
+
+.modal-body { padding: 0; }
+
+.modal-section {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-section:last-child { border-bottom: none; }
+
+.modal-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue-text);
+  margin-bottom: 10px;
+}
+
+.modal-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+.modal-row:last-child { margin-bottom: 0; }
+.modal-tag {
+  flex-shrink: 0;
+  min-width: 130px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-top: 1px;
+}
+.modal-desc {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.55;
+}
+.modal-desc strong { color: var(--text-2); font-weight: 600; }
+
+.modal-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--blue-light);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 3px 3px 0;
+  font-size: 11px;
+  color: var(--blue-text);
+  line-height: 1.55;
+}
+
+/* Pulsante "?" nell'header */
+.btn-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.btn-help:hover { background: rgba(255,255,255,.18); }
+
 /* ─── TAB BAR ────────────────────────────────────────────────────────────── */
 .tab-bar {
   position: fixed;
@@ -799,6 +916,7 @@ body {
 
   <div class="header-right">
     <span class="header-badge">Dashboard comparativa</span>
+    <button class="btn-help" onclick="openHelp()" title="Guida all'uso">?</button>
     <button class="btn-print" onclick="doPrint()">
       <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Stampa / PDF
@@ -1004,6 +1122,102 @@ body {
 
 </div><!-- /.shell -->
 </div><!-- /#view-det -->
+
+<!-- MODAL ISTRUZIONI -->
+<div class="modal-overlay" id="help-modal" onclick="handleModalClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-title">Guida alla dashboard — Costo medio orario operai edili</div>
+      <button class="modal-header-close" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section">
+        <div class="modal-section-title">Cos'è questa dashboard</div>
+        <div class="modal-row">
+          <div class="modal-tag">Fonte dati</div>
+          <div class="modal-desc">Tabelle ufficiali del <strong>Ministero del Lavoro e delle Politiche Sociali</strong> — Direzione Generale dei Rapporti di Lavoro — aggiornate a <strong>Maggio 2025</strong>. Dati relativi agli operai delle imprese edili ed affini (CCNL Edilizia).</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Elaborazione</div>
+          <div class="modal-desc"><strong>ANCE Piemonte Valle d'Aosta</strong> — Direzione. I dati sono caricati automaticamente da Google Sheets ad ogni apertura.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Copertura</div>
+          <div class="modal-desc">102 province italiane, 4 livelli contrattuali (1°–4°), con dettaglio di tutte le voci che compongono il costo orario.</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Tab 1 — Costi aggregati</div>
+        <div class="modal-row">
+          <div class="modal-tag">Province / Regioni</div>
+          <div class="modal-desc">Alterna la vista tra singole province e medie regionali (calcolate come media aritmetica delle province della regione).</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Filtro area</div>
+          <div class="modal-desc">Seleziona <strong>Nord</strong>, <strong>Centro</strong> o <strong>Sud e Isole</strong> per caricare tutte le province dell'area. I pulsanti sono cumulabili.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Cerca e aggiungi</div>
+          <div class="modal-desc">Digita il nome di una <strong>regione</strong> (es. "Piemonte") per aggiungere tutte le sue province in un click. Digita il nome di una <strong>città</strong> (es. "Torino") per aggiungerla singolarmente. Le selezioni appaiono come chip colorati sopra il grafico — clic sulla × per rimuovere.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Livelli contrattuali</div>
+          <div class="modal-desc"><strong>1°</strong> operaio comune · <strong>2°</strong> qualificato · <strong>3°</strong> specializzato · <strong>4°</strong> specializzato superiore. Il costo include tutti gli oneri a carico del datore di lavoro.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Benchmark</div>
+          <div class="modal-desc">Linee tratteggiate sul grafico: riferimento nazionale, Nord, Centro o Sud. Attivabili singolarmente nella sezione "Benchmark di riferimento" nella sidebar.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Colori barre</div>
+          <div class="modal-desc"><span style="font-weight:600;color:#1e3a8a">Blu = Nord</span> · <span style="font-weight:600;color:#065f46">Verde = Centro</span> · <span style="font-weight:600;color:#92400e">Ambra = Sud e Isole</span>. Le barre sono ordinate dal costo più alto al più basso.</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Tab 2 — Analisi per voce</div>
+        <div class="modal-row">
+          <div class="modal-tag">Come si usa</div>
+          <div class="modal-desc">Seleziona le province da confrontare con la stessa logica della tab 1. Ogni provincia diventa una colonna; le voci di costo sono le righe fisse a sinistra. La tabella scorre orizzontalmente.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Struttura righe</div>
+          <div class="modal-desc"><strong>Sezione A</strong> — elementi retributivi diretti (minimo, contingenza, ITS…) · <strong>Sezione B</strong> — oneri aggiuntivi (festività, riposi, Cassa Edile GNF…) · <strong>Sezione C</strong> — oneri previdenziali (INPS, INAIL, Cassa Edile). Seguono: mensa, TFR, oneri vari, Sanedil, costo totale.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Colori celle</div>
+          <div class="modal-desc">Per ogni voce il <span style="background:#fef2f2;color:#b91c1c;padding:1px 5px;border-radius:2px;font-weight:600">valore massimo</span> è evidenziato in rosso chiaro e il <span style="background:#f0fdf4;color:#15803d;padding:1px 5px;border-radius:2px;font-weight:600">valore minimo</span> in verde chiaro — attivi solo quando sono selezionate almeno 2 province.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Contributi Cassa Edile</div>
+          <div class="modal-desc">La percentuale varia per Cassa Edile territoriale. Sotto ogni valore è indicata la percentuale specifica applicata in quella provincia.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Riga finale</div>
+          <div class="modal-desc">La riga <strong>COSTO MEDIO ORARIO</strong> (sfondo blu) è il dato sintetico totale: somma di tutti gli oneri a carico del datore di lavoro per ora lavorata.</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Aggiornamento dati</div>
+        <div class="modal-row">
+          <div class="modal-tag">Come aggiornare</div>
+          <div class="modal-desc">Modificare direttamente i fogli Google — <strong>Dati</strong> per i costi aggregati, <strong>Dettagli</strong> per l'analisi per voce. La dashboard rilegge i dati ad ogni apertura senza toccare il file HTML.</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-tag">Se non carica</div>
+          <div class="modal-desc">Google Sheets può rallentare dopo molti aggiornamenti ravvicinati. Attendere qualche minuto e cliccare <strong>Riprova</strong>. Verificare che i fogli siano pubblicati come CSV pubblico: File → Condividi → Pubblica sul Web.</div>
+        </div>
+        <div class="modal-note">
+          Dashboard elaborata da <strong>ANCE Piemonte Valle d'Aosta</strong> — Direzione · Fonte: Ministero del Lavoro · Maggio 2025 · Per segnalazioni contattare la Direzione Associativa.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <script>
 /* ─── CONFIG ─────────────────────────────────────────────────────────────── */
@@ -1930,12 +2144,19 @@ function detRenderTable(){
 
   container.innerHTML = `<div class="det-table-outer"><table class="det-table">${thead}${tbody}</table></div>`;
 }
-/* ─── INIT ─────────────────────────────────────────────────────────────── */
+/* ─── MODAL ISTRUZIONI ───────────────────────────────────────────────────── */
+function openHelp(){ document.getElementById('help-modal').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeHelp(){ document.getElementById('help-modal').classList.remove('open'); document.body.style.overflow=''; }
+function handleModalClick(e){ if(e.target===document.getElementById('help-modal')) closeHelp(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeHelp(); });
+
+/* ─── INIT ───────────────────────────────────────────────────────────────── */
 loadData();
-// loadDettagli(); // decommenta se vuoi caricare i dettagli subito
+
 
 </script>
 </body>
 </html>
+
 
 
