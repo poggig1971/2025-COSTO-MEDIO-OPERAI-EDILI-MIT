@@ -18,7 +18,7 @@
   --blue-mid:   #2c4fa3;
   --blue-light: #dbeafe;
   --blue-text:  #1e40af;
-  --bg:         #f9fafb;
+  --bg:         #ffffff;
   --surface:    #ffffff;
   --border:     #e5e7eb;
   --border-med: #d1d5db;
@@ -34,7 +34,7 @@
   --sud-bg:     #fffbeb;
   --danger:     #b91c1c;
   --success:    #15803d;
-  --header-h:   56px;
+  --header-h:   88px;
   --side-w:     264px;
   --font:       'IBM Plex Sans', system-ui, sans-serif;
   --mono:       'IBM Plex Mono', monospace;
@@ -430,7 +430,7 @@ body {
 
 .kpi-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-bottom: 2px solid var(--border-med);
   border-radius: 3px;
   padding: 14px 15px;
@@ -1040,10 +1040,10 @@ function renderInsight(items, vals){
   const mx = Math.max(...vals), mn = Math.min(...vals);
   const mxIt = items[vals.indexOf(mx)], mnIt = items[vals.indexOf(mn)];
   const scost = diff > 0.01
-    ? `superiore alla media nazionale di <strong>€${diff.toFixed(2)}/h</strong>`
+    ? `€/h sopra media nazionale <strong>€${diff.toFixed(2)}/h</strong>`
     : diff < -0.01
-    ? `inferiore alla media nazionale di <strong>€${Math.abs(diff).toFixed(2)}/h</strong>`
-    : `sostanzialmente allineato alla media nazionale`;
+    ? `€/h sotto media nazionale <strong>€${Math.abs(diff).toFixed(2)}/h</strong>`
+    : `in linea con media nazionale`;
   el.innerHTML = `
     <div class="insight-tag">Lettura automatica · ${items.length} ${mode==='province'?'province':'regioni'} · ${LV_LABELS[LVS.indexOf(lv)]}</div>
     <div class="insight-title">Il costo medio della selezione (${fmtEur(m)}/h) è ${scost}.</div>
