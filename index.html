@@ -35,6 +35,7 @@
   --danger:     #b91c1c;
   --success:    #15803d;
   --header-h:   88px;
+  --tabbar-h:   40px;
   --side-w:     264px;
   --font:       'IBM Plex Sans', system-ui, sans-serif;
   --mono:       'IBM Plex Mono', monospace;
@@ -136,7 +137,7 @@ body {
 /* ─── SHELL ──────────────────────────────────────────────────────────────── */
 .shell {
   display: flex;
-  padding-top: var(--header-h);
+  padding-top: calc(var(--header-h) + var(--tabbar-h));
   min-height: 100vh;
 }
 
@@ -147,8 +148,8 @@ body {
   background: var(--surface);
   border-right: 1px solid var(--border);
   position: sticky;
-  top: var(--header-h);
-  height: calc(100vh - var(--header-h));
+  top: calc(var(--header-h) + var(--tabbar-h));
+  height: calc(100vh - var(--header-h) - var(--tabbar-h));
   overflow-y: auto;
   padding: 20px 16px;
   display: flex;
@@ -575,16 +576,192 @@ body {
   .main { padding: 12px; }
 }
 
+/* ─── TAB BAR ────────────────────────────────────────────────────────────── */
+.tab-bar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0; right: 0;
+  height: var(--tabbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 0;
+  z-index: 99;
+}
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  height: 100%;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.on { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.tab-bar-sep { flex: 1; }
+.tab-bar-info { font-size: 10px; color: var(--text-4); }
+
+/* ─── VIEW SECTIONS ──────────────────────────────────────────────────────── */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* ─── DETAIL TABLE ───────────────────────────────────────────────────────── */
+.det-table-outer {
+  overflow: auto;
+  max-height: calc(100vh - var(--header-h) - var(--tabbar-h) - 130px);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.det-table-outer::-webkit-scrollbar { width: 6px; height: 6px; }
+.det-table-outer::-webkit-scrollbar-track { background: var(--bg); }
+.det-table-outer::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 3px; }
+
+.det-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+/* Sticky header (province names) */
+.det-table thead tr th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 10px 7px;
+  border-right: 1px solid rgba(255,255,255,.12);
+  white-space: nowrap;
+  min-width: 108px;
+}
+.det-table thead tr th:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 260px;
+  max-width: 260px;
+  border-right: 2px solid rgba(255,255,255,.25);
+  background: var(--blue);
+}
+.det-col-sig { font-size: 12px; font-weight: 700; }
+.det-col-city { font-size: 10px; font-weight: 400; opacity: .75; margin-top: 1px; }
+.det-col-area { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 2px; margin-top: 3px; }
+.det-col-area.N { background: rgba(255,255,255,.15); }
+.det-col-area.C { background: rgba(255,255,255,.15); }
+.det-col-area.S { background: rgba(255,255,255,.15); }
+
+/* Sticky first column */
+.det-table tbody tr td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-right: 1px solid var(--border-med);
+}
+
+/* Row types */
+.det-table tbody tr:hover td { background: #f0f6ff !important; }
+.det-table tbody tr:hover td:first-child { background: #e8f0fe !important; }
+
+.det-row-data td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+.det-row-data td:first-child {
+  font-size: 11.5px;
+  color: var(--text-2);
+  padding: 5px 10px 5px 14px;
+}
+.det-row-data .det-cell { text-align: right; font-family: var(--mono); font-size: 11px; color: var(--text); }
+
+.det-row-section td {
+  padding: 7px 10px 5px 14px;
+  background: #f3f4f6 !important;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.det-table tbody tr.det-row-section:hover td { background: #eceff3 !important; }
+
+.det-row-subtotal td {
+  padding: 6px 10px;
+  background: #f9fafb !important;
+  border-top: 1px solid var(--border-med);
+  border-bottom: 2px solid var(--border-med);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+.det-row-subtotal td:first-child { color: var(--text); }
+.det-row-subtotal .det-cell { text-align: right; font-family: var(--mono); font-size: 11px; color: var(--text); }
+.det-table tbody tr.det-row-subtotal:hover td { background: #f1f3f5 !important; }
+
+.det-row-total td {
+  padding: 8px 10px;
+  background: var(--blue) !important;
+  border-top: 2px solid var(--blue);
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+}
+.det-row-total td:first-child { color: #fff; letter-spacing: .04em; }
+.det-row-total .det-cell { text-align: right; font-family: var(--mono); font-size: 12px; color: #fff; }
+.det-table tbody tr.det-row-total:hover td { background: #1e40af !important; }
+
+/* Min/Max highlights (overridden by hover) */
+.det-cell-max { background: #fef2f2 !important; }
+.det-cell-min { background: #f0fdf4 !important; }
+.det-row-data:hover .det-cell-max,
+.det-row-data:hover .det-cell-min { background: #f0f6ff !important; }
+
+/* Cassa Edile percent sub-label */
+.det-cassa-pct { font-size: 9px; color: var(--text-4); font-family: var(--font); text-align: right; margin-top: 1px; }
+.det-row-total .det-cassa-pct { color: rgba(255,255,255,.6); }
+
+/* Detail empty/loading state */
+.det-empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--text-4);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.det-empty-icon { font-size: 24px; margin-bottom: 8px; opacity: .4; }
+.det-empty-text { font-size: 12px; line-height: 1.6; }
+
 /* ─── PRINT ──────────────────────────────────────────────────────────────── */
 @media print {
   body { background: #fff; }
   .header { position: relative; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .tab-bar { display: none !important; }
   .sidebar, .btn-print, .status-bar, .chips-panel, .search-wrap, .quick-row, .list-box, .sel-count, .area-btns, .lv-row, .bm-row, .mode-toggle { display: none !important; }
   .shell { display: block; padding-top: 0; }
   .main { padding: 12px; gap: 10px; }
   .kpi-card, .insight-box, .chart-panel { box-shadow: none; border: 1px solid #d1d5db; }
   .print-note { display: block !important; }
   .kpi-row { grid-template-columns: repeat(4, 1fr); }
+  .det-table-outer { max-height: none; overflow: visible; }
+  .det-table thead tr th { background: var(--blue) !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .det-row-total td { background: var(--blue) !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 </style>
 </head>
@@ -595,8 +772,12 @@ body {
      ════════════════════════════════════════════════════════════════ -->
 <script>
   const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=1892027375&single=true&output=csv";
-  // Esempio: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=1892027375&single=true&output=csv"
-  // Istruzioni nel foglio "Istruzioni" del file Excel allegato
+  // Foglio DATI: già configurato
+
+  const DETTAGLI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=406350821&single=true&output=csv";
+  // Foglio DETTAGLI: pubblica il foglio "Dettagli" come CSV e incolla qui il link
+  // Esempio: "https://docs.google.com/spreadsheets/d/e/XXXX/pub?gid=YYYY&single=true&output=csv"
+  // Il foglio Dettagli NON deve avere riga di intestazione
 </script>
 <!-- ═══════════════════════════════════════════════════════════════ -->
 
@@ -622,6 +803,17 @@ body {
     </button>
   </div>
 </header>
+
+<!-- TAB BAR -->
+<nav class="tab-bar">
+  <button class="tab-btn on" data-view="agg" onclick="switchView('agg')">Costi aggregati</button>
+  <button class="tab-btn" data-view="det" onclick="switchView('det')">Analisi per voce</button>
+  <div class="tab-bar-sep"></div>
+  <span class="tab-bar-info" id="tab-info"></span>
+</nav>
+
+<!-- VIEW: COSTI AGGREGATI -->
+<div id="view-agg" class="view-section active">
 
 <div class="shell">
 
@@ -731,7 +923,85 @@ body {
     </div>
 
   </main>
-</div>
+</div><!-- /.shell -->
+</div><!-- /#view-agg -->
+
+<!-- VIEW: ANALISI PER VOCE -->
+<div id="view-det" class="view-section">
+<div class="shell">
+
+  <!-- SIDEBAR DETTAGLIO -->
+  <aside class="sidebar" id="det-sidebar">
+
+    <div class="sb-section">
+      <div class="sb-label">Cerca e aggiungi</div>
+      <div class="search-wrap">
+        <input class="search-input" id="det-search"
+          placeholder="Regione (es. Piemonte) o città…"
+          oninput="detOnSearch()"
+          onfocus="detOnSearch()"
+          onblur="setTimeout(()=>{document.getElementById('det-drop').style.display='none'},220)">
+        <div class="search-drop" id="det-drop" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Selezione rapida</div>
+      <div class="quick-row">
+        <button class="quick-btn" onclick="detSelAll()">Tutte</button>
+        <button class="quick-btn" onclick="detSelNone()">Nessuna</button>
+      </div>
+    </div>
+
+    <div class="sb-section" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:7px">
+      <div class="sb-label">Province disponibili</div>
+      <div class="list-box" id="det-list"></div>
+      <div class="sel-count" id="det-count"></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Livello contrattuale</div>
+      <div class="lv-row" id="det-lv-row">
+        <button class="lv-btn on" data-lv="lv1" onclick="detSetLv(this)">1°</button>
+        <button class="lv-btn"    data-lv="lv2" onclick="detSetLv(this)">2°</button>
+        <button class="lv-btn"    data-lv="lv3" onclick="detSetLv(this)">3°</button>
+        <button class="lv-btn"    data-lv="lv4" onclick="detSetLv(this)">4°</button>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label" style="margin-bottom:4px">Legenda colori</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--text-3)">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:2px;flex-shrink:0"></div>Valore massimo per voce</div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:2px;flex-shrink:0"></div>Valore minimo per voce</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN DETTAGLIO -->
+  <main class="main">
+
+    <div class="status-bar loading" id="det-statusbar">
+      <div class="spinner"></div>
+      <span id="det-statusmsg">In attesa — passa a questa sezione per caricare i dati</span>
+    </div>
+
+    <div class="chips-panel" id="det-chips">
+      <span class="chips-empty">Nessuna provincia selezionata — usa la ricerca a sinistra</span>
+    </div>
+
+    <div id="det-content">
+      <div class="det-empty">
+        <div class="det-empty-icon">▤</div>
+        <div class="det-empty-text">Carica il foglio Dettagli e seleziona province o regioni<br>per visualizzare il confronto per voce di costo</div>
+      </div>
+    </div>
+
+  </main>
+
+</div><!-- /.shell -->
+</div><!-- /#view-det -->
 
 <script>
 /* ─── CONFIG ─────────────────────────────────────────────────────────────── */
@@ -1237,8 +1507,413 @@ function doPrint(){
   window.print();
 }
 
-/* ─── INIT ───────────────────────────────────────────────────────────────── */
-loadData();
+/* ─── VIEW SWITCHER ──────────────────────────────────────────────────────── */
+let detInitialized = false;
+
+function switchView(v){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  document.getElementById('view-agg').classList.toggle('active', v === 'agg');
+  document.getElementById('view-det').classList.toggle('active', v === 'det');
+  if(v === 'det' && !detInitialized){
+    detInitialized = true;
+    loadDettagli();
+  }
+}
+
+/* ─── DETAIL: CONFIG ─────────────────────────────────────────────────────── */
+const DET_ROWS = [
+  { key:'hdr_A',     label:'A — Elementi retributivi orari',                          type:'section'  },
+  { key:'minimo',    label:'Minimo',                                                   type:'data'     },
+  { key:'conting',   label:'Ind. contingenza',                                         type:'data'     },
+  { key:'edr',       label:'E.D.R. - ex prot.23/7/1993',                              type:'data'     },
+  { key:'evr',       label:'Elemento Variabile della Retribuzione(1)',                 type:'data'     },
+  { key:'its',       label:'Indennità di settore ITS',                                 type:'data'     },
+  { key:'tot_a',     label:'TOTALE "A"',                                               type:'subtotal' },
+  { key:'hdr_B',     label:'B — Oneri aggiuntivi',                                    type:'section'  },
+  { key:'fest12',    label:'Retribuzione 12 festività',                                type:'data'     },
+  { key:'nov4',      label:'Retribuzione 4 novembre',                                  type:'data'     },
+  { key:'riposi',    label:'Riposi annui (4,95%)',                                     type:'data'     },
+  { key:'gnf',       label:'Accantonamento Cassa Edile per GNF (18,50%)',             type:'data'     },
+  { key:'trasp',     label:'Indennità di trasporto',                                   type:'data'     },
+  { key:'assemb',    label:'Retribuzione assemblee, diritto allo studio e formazione', type:'data'     },
+  { key:'mal',       label:'Accantonamento Cassa Edile per malattia e infortunio',    type:'data'     },
+  { key:'finc',      label:"Fondo incentivo all'occupazione (0,10%)",                  type:'data'     },
+  { key:'tot_b',     label:'TOTALE "B"',                                               type:'subtotal' },
+  { key:'hdr_C',     label:'C — Oneri previdenziali e assistenziali',                 type:'section'  },
+  { key:'inps',      label:'Inps (34,28%) — 15-50 dipendenti',                        type:'data'     },
+  { key:'inail',     label:'Inail (11,00%)',                                           type:'data'     },
+  { key:'cassa',     label:'Contributi Cassa Edile',                                   type:'data', cassaNote:true },
+  { key:'magg',      label:'Maggiorazione contributiva Inps/Inail su Cassa Edile',    type:'data'     },
+  { key:'tot_c',     label:'TOTALE "C"',                                               type:'subtotal' },
+  { key:'mensa',     label:'Indennità sostitutiva di mensa',                           type:'data'     },
+  { key:'tfr',       label:'Trattamento fine rapporto',                                type:'data'     },
+  { key:'tfr_riv',   label:'Rivalutazione T.F.R. (2,320017%)',                         type:'data'     },
+  { key:'oneri',     label:'Oneri vari: trasferte, prev. complementare, disagio 50%', type:'data'     },
+  { key:'contcontr', label:'Contributo contrattuale previdenza complementare',         type:'data'     },
+  { key:'sanedil',   label:'Fondo Sanitario (Sanedil)',                                type:'data'     },
+  { key:'cmo',       label:'COSTO MEDIO ORARIO',                                      type:'total'    },
+];
+
+/* ─── DETAIL: STATE ──────────────────────────────────────────────────────── */
+let DET_DATA  = new Map(); // sigla → { r, p, c, a, data:{key:{lv1..lv4}}, cassaPercent }
+let detSel    = new Set();
+let detLv     = 'lv1';
+let detRegMap = new Map(); // regione → [sigle]
+
+/* ─── DETAIL: NORMALIZE DESCRIPTION → ROW KEY ───────────────────────────── */
+function normDesc(raw){
+  const d = raw.trim().toLowerCase().replace(/\s+/g,' ');
+  if(d === 'minimo') return 'minimo';
+  if(d.startsWith('ind. contingenza')) return 'conting';
+  if(d.startsWith('e.d.r.')) return 'edr';
+  if(d.startsWith('elemento variabile')) return 'evr';
+  if(d.startsWith('indennit') && d.includes('settore')) return 'its';
+  if(d.includes('totale') && d.includes('"a"')) return 'tot_a';
+  if(d.startsWith('retribuzione 12')) return 'fest12';
+  if(d.startsWith('retribuzione 4 nov')) return 'nov4';
+  if(d.startsWith('riposi annui')) return 'riposi';
+  if(d.startsWith('accantonamento cassa edile per gnf')) return 'gnf';
+  if(d.startsWith('accantonamento cassa edile  per gnf')) return 'gnf';
+  if(d.startsWith('indennit') && d.includes('trasporto')) return 'trasp';
+  if(d.startsWith('retribuzione assemblee')) return 'assemb';
+  if(d.startsWith('accantonamento cassa edile per malattia')) return 'mal';
+  if(d.startsWith('accantonamento cassa edile  per malattia')) return 'mal';
+  if(d.startsWith('fondo incentivo')) return 'finc';
+  if(d.includes('totale') && d.includes('"b"')) return 'tot_b';
+  if(d.startsWith('inps')) return 'inps';
+  if(d.startsWith('inail')) return 'inail';
+  if(d.startsWith('contributi cassa edile')) return 'cassa';
+  if(d === "all'occupazione") return 'magg';       // continuation of maggiorazione
+  if(d.startsWith('maggiorazione contributiva')) return null; // skip the header-only row
+  if(d.includes('totale') && d.includes('"c"')) return 'tot_c';
+  if(d.startsWith('indennit') && d.includes('mensa')) return 'mensa';
+  if(d.startsWith('trattamento fine rapporto')) return 'tfr';
+  if(d.startsWith('rivalutazione t.f.r.') || d.startsWith('rivalutazione tfr')) return 'tfr_riv';
+  if(d.startsWith('oneri vari')) return 'oneri';
+  if(d.startsWith('contributo contrattuale')) return 'contcontr';
+  if(d.startsWith('fondo sanitario')) return 'sanedil';
+  if(d.startsWith('costo medio orario')) return 'cmo';
+  return null; // city names, section headers (A/B/C), unknown
+}
+
+/* ─── DETAIL: LOAD DATA ──────────────────────────────────────────────────── */
+function detSetStatus(type, msg){
+  const el = document.getElementById('det-statusbar');
+  el.className = 'status-bar ' + type;
+  document.getElementById('det-statusmsg').textContent = msg;
+}
+
+function loadDettagli(){
+  const url = (typeof DETTAGLI_CSV_URL !== 'undefined') ? DETTAGLI_CSV_URL : '';
+  if(!url || url === 'INSERISCI_QUI_IL_LINK_CSV_DETTAGLI'){
+    detSetStatus('error','Collegamento foglio Dettagli non configurato. Inserisci DETTAGLI_CSV_URL nel file HTML.');
+    return;
+  }
+  detSetStatus('loading','Caricamento dati Analisi per voce da Google Sheets…');
+
+  Papa.parse(url, {
+    download: true,
+    header: false,
+    skipEmptyLines: true,
+    complete({ data }){
+      if(!data?.length){ detSetStatus('error','Nessun dato ricevuto dal foglio Dettagli.'); return; }
+
+      // Build per-province map
+      const byProv = new Map(); // sigla → [{row cols}]
+      data.forEach(row => {
+        const sig = (row[1] || '').trim();
+        if(!sig) return;
+        if(!byProv.has(sig)) byProv.set(sig, { r:(row[0]||'').trim(), p:sig, c:(row[2]||'').trim(), rows:[] });
+        byProv.get(sig).rows.push(row);
+      });
+
+      DET_DATA.clear();
+      detRegMap.clear();
+
+      byProv.forEach((prov, sig) => {
+        const parsedData = {};
+        let cassaPercent = '';
+
+        prov.rows.forEach(row => {
+          const desc = (row[3] || '').trim();
+          const key  = normDesc(desc);
+          if(!key) return;
+
+          if(key === 'cassa'){
+            const m = desc.match(/\(([0-9,]+%)\)/);
+            if(m) cassaPercent = m[1];
+          }
+
+          parsedData[key] = {
+            lv1: pNum(row[4]),
+            lv2: pNum(row[5]),
+            lv3: pNum(row[6]),
+            lv4: pNum(row[7]),
+          };
+        });
+
+        const areaCode = aCode(RAW.find(d=>d.p===sig)?.a || 'S');
+        const aVal = RAW.find(d=>d.p===sig)?.a || 'S';
+
+        DET_DATA.set(sig, {
+          r: prov.r,
+          p: sig,
+          c: prov.c,
+          a: aVal,
+          data: parsedData,
+          cassaPercent,
+        });
+
+        if(!detRegMap.has(prov.r)) detRegMap.set(prov.r, []);
+        detRegMap.get(prov.r).push(sig);
+      });
+
+      if(!DET_DATA.size){ detSetStatus('error','Dati letti ma nessuna provincia trovata. Controlla la struttura del foglio.'); return; }
+
+      detSetStatus('ok','');
+      document.getElementById('tab-info').textContent = `${DET_DATA.size} province caricate`;
+
+      // Default: load Nord provinces from RAW
+      DET_DATA.forEach((prov, sig) => {
+        const raw = RAW.find(d=>d.p===sig);
+        if(raw && raw.a === 'N') detSel.add(sig);
+      });
+
+      detRenderList();
+      detRenderChips();
+      detRenderTable();
+    },
+    error({ message }){
+      detSetStatus('error','Errore: ' + message);
+    }
+  });
+}
+
+/* ─── DETAIL: ITEMS HELPERS ──────────────────────────────────────────────── */
+function detGetSortedProvs(){
+  return [...DET_DATA.values()].sort((a,b)=>a.c.localeCompare(b.c,'it'));
+}
+
+/* ─── DETAIL: CONTROLS ───────────────────────────────────────────────────── */
+function detToggle(sig){
+  if(detSel.has(sig)) detSel.delete(sig); else detSel.add(sig);
+  detRenderList(); detRenderChips(); detRenderTable();
+}
+
+function detSelAll(){
+  DET_DATA.forEach((_,sig) => detSel.add(sig));
+  detRenderList(); detRenderChips(); detRenderTable();
+}
+function detSelNone(){
+  detSel.clear();
+  detRenderList(); detRenderChips(); detRenderTable();
+}
+
+function detSetLv(btn){
+  detLv = btn.dataset.lv;
+  document.querySelectorAll('#det-lv-row .lv-btn').forEach(b=>b.classList.toggle('on', b.dataset.lv===detLv));
+  detRenderTable();
+}
+
+/* ─── DETAIL: SEARCH ─────────────────────────────────────────────────────── */
+function detOnSearch(){
+  const q   = document.getElementById('det-search').value.trim().toLowerCase();
+  const drop = document.getElementById('det-drop');
+  if(q.length < 1){ drop.style.display='none'; return; }
+
+  let html = '';
+  const shownRegs = [];
+
+  // Region group matches
+  detRegMap.forEach((sigle, reg) => {
+    if(!reg.toLowerCase().includes(q)) return;
+    shownRegs.push(reg);
+    const provs = sigle.map(s=>DET_DATA.get(s)).filter(Boolean).sort((a,b)=>a.c.localeCompare(b.c,'it'));
+    if(!provs.length) return;
+    const areaCode = provs[0].a;
+    const allSel = provs.every(p=>detSel.has(p.p));
+    const regEsc = reg.replace(/'/g,"\\'");
+    html += `
+      <div class="drop-group-row" onclick="detAddGroup('${regEsc}')">
+        <div class="drop-group-icon">${reg.slice(0,2).toUpperCase()}</div>
+        <div class="drop-group-text">
+          <div class="drop-group-name">${reg} — tutte le province</div>
+          <div class="drop-group-sub">${provs.length} province · ${AREA_NAME[areaCode]||''}</div>
+        </div>
+        <div class="drop-group-tag">${allSel ? '✓ selezionate' : '+ aggiungi tutte'}</div>
+      </div>
+      <div class="drop-divider">Province di ${reg}</div>`;
+    provs.slice(0,6).forEach(p => {
+      html += `<div class="drop-item" data-id="${p.p}" onclick="detAddItem(this.dataset.id)">
+        <div class="drop-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="drop-name">${p.c}</div>
+          <div class="drop-sub">${p.p}${detSel.has(p.p)?' · ✓':''}</div>
+        </div>
+      </div>`;
+    });
+    if(provs.length > 6)
+      html += `<div class="drop-divider" style="color:var(--blue-text);cursor:pointer" onclick="detAddGroup('${regEsc}')">+ altre ${provs.length-6} province</div>`;
+  });
+
+  // Individual province matches (not already shown via group)
+  const hits = detGetSortedProvs().filter(p => {
+    if(!p.c.toLowerCase().includes(q) && !p.r.toLowerCase().includes(q) && !p.p.toLowerCase().includes(q)) return false;
+    if(shownRegs.includes(p.r)) return false;
+    return true;
+  }).slice(0,8);
+
+  if(hits.length){
+    if(html) html += `<div class="drop-divider">Risultati per "${q}"</div>`;
+    hits.forEach(p => {
+      html += `<div class="drop-item" data-id="${p.p}" onclick="detAddItem(this.dataset.id)">
+        <div class="drop-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="drop-name">${p.c}</div>
+          <div class="drop-sub">${p.p} · ${p.r}${detSel.has(p.p)?' · ✓':''}</div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(!html){ drop.style.display='none'; return; }
+  drop.innerHTML = html;
+  drop.style.display = 'block';
+}
+
+function detAddGroup(reg){
+  (detRegMap.get(reg)||[]).forEach(s=>detSel.add(s));
+  document.getElementById('det-search').value = '';
+  document.getElementById('det-drop').style.display = 'none';
+  detRenderList(); detRenderChips(); detRenderTable();
+}
+
+function detAddItem(sig){
+  detSel.add(sig);
+  document.getElementById('det-search').value = '';
+  document.getElementById('det-drop').style.display = 'none';
+  detRenderList(); detRenderChips(); detRenderTable();
+}
+
+/* ─── DETAIL: RENDER LIST ────────────────────────────────────────────────── */
+function detRenderList(){
+  const provs = detGetSortedProvs();
+  document.getElementById('det-list').innerHTML = provs.map(p=>`
+    <div class="list-item${detSel.has(p.p)?' on':''}" data-id="${p.p}" onclick="detToggle(this.dataset.id)">
+      <div class="li-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="li-name">${p.p} · ${p.c}</div>
+        <div class="li-sub">${p.r}</div>
+      </div>
+    </div>`).join('') || '<div style="padding:12px;text-align:center;color:var(--text-4);font-size:11px">Caricamento…</div>';
+  document.getElementById('det-count').textContent = `${detSel.size} ${detSel.size===1?'provincia selezionata':'province selezionate'}`;
+}
+
+/* ─── DETAIL: RENDER CHIPS ───────────────────────────────────────────────── */
+function detRenderChips(){
+  const el = document.getElementById('det-chips');
+  const provs = detGetSortedProvs().filter(p=>detSel.has(p.p));
+  if(!provs.length){
+    el.innerHTML = '<span class="chips-empty">Nessuna provincia selezionata — usa la ricerca o la lista</span>';
+    return;
+  }
+  el.innerHTML = provs.map(p=>`
+    <span class="chip ${p.a||''}" data-id="${p.p}" onclick="detToggle(this.dataset.id)" title="Rimuovi ${p.c}">
+      ${p.p}<span class="x"> ×</span>
+    </span>`).join('');
+}
+
+/* ─── DETAIL: RENDER TABLE ───────────────────────────────────────────────── */
+function detRenderTable(){
+  const container = document.getElementById('det-content');
+
+  const provs = detGetSortedProvs().filter(p=>detSel.has(p.p));
+
+  if(!provs.length){
+    container.innerHTML = `<div class="det-empty">
+      <div class="det-empty-icon">▤</div>
+      <div class="det-empty-text">Seleziona province dalla lista o cerca una regione<br>per visualizzare il confronto voce per voce</div>
+    </div>`;
+    return;
+  }
+
+  const lvKey = detLv;
+  const lvIdx = LVS.indexOf(lvKey);
+  const lvLabel = LV_LABELS[lvIdx];
+
+  // Precompute per-row min/max across selected provinces (for color coding)
+  const rowStats = {};
+  DET_ROWS.forEach(row => {
+    if(row.type !== 'data' && row.type !== 'subtotal' && row.type !== 'total') return;
+    const vals = provs.map(p => p.data[row.key]?.[lvKey] || 0).filter(v=>v>0);
+    if(vals.length >= 2){
+      rowStats[row.key] = { min: Math.min(...vals), max: Math.max(...vals) };
+    }
+  });
+
+  // Build table HTML
+  let thead = `<thead><tr>
+    <th><div class="det-col-sig">Voce di costo</div><div class="det-col-city">${lvLabel}</div></th>`;
+
+  provs.forEach(p => {
+    thead += `<th>
+      <div class="det-col-sig">${p.p}</div>
+      <div class="det-col-city">${p.c}</div>
+      <div class="det-col-area ${p.a||''}">${AREA_NAME[p.a]||p.a||''}</div>
+    </th>`;
+  });
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  DET_ROWS.forEach(row => {
+    const { key, label, type, cassaNote } = row;
+    const isSection  = type === 'section';
+    const isSubtotal = type === 'subtotal';
+    const isTotal    = type === 'total';
+    const isData     = type === 'data';
+
+    const trClass = `det-row-${type}`;
+
+    if(isSection){
+      const emptyCols = provs.map(()=>'<td></td>').join('');
+      tbody += `<tr class="${trClass}"><td>${label}</td>${emptyCols}</tr>`;
+      return;
+    }
+
+    let cells = '';
+    provs.forEach(p => {
+      const entry = p.data[key];
+      const val   = entry?.[lvKey];
+      const stats = rowStats[key];
+
+      let cellCls = 'det-cell';
+      if(isData && stats && val && val > 0){
+        if(val === stats.max && val > stats.min) cellCls += ' det-cell-max';
+        else if(val === stats.min && val < stats.max) cellCls += ' det-cell-min';
+      }
+
+      let inner = '';
+      if(val && val > 0){
+        inner = val.toFixed(2);
+        if(cassaNote && p.cassaPercent){
+          inner += `<div class="det-cassa-pct">${p.cassaPercent}</div>`;
+        }
+      } else {
+        inner = '<span style="color:var(--text-4)">—</span>';
+      }
+
+      cells += `<td><div class="${cellCls}">${inner}</div></td>`;
+    });
+
+    tbody += `<tr class="${trClass}"><td>${label}</td>${cells}</tr>`;
+  });
+  tbody += '</tbody>';
+
+  container.innerHTML = `<div class="det-table-outer"><table class="det-table">${thead}${tbody}</table></div>`;
+}
+
+
 </script>
 </body>
 </html>
+
