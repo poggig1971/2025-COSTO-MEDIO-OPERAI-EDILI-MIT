@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costo Medio Orario Operai Edili — ANCE Piemonte V.d.A.</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#fff}
+
+  /* ── HEADER ── */
+  .hdr{padding:14px 18px 12px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:flex-start}
+  .hdr-title{font-size:15px;font-weight:700;color:#1f2937}
+  .hdr-sub{font-size:11px;color:#6b7280;margin-top:2px}
+  .print-btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;color:#374151}
+  .print-btn:hover{background:#f9fafb}
+  .print-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ── LOADING / ERROR ── */
+  .status-bar{padding:10px 18px;font-size:12px;display:flex;align-items:center;gap:8px}
+  .status-bar.loading{background:#eff6ff;color:#1d4ed8;border-bottom:1px solid #bfdbfe}
+  .status-bar.error{background:#fef2f2;color:#991b1b;border-bottom:1px solid #fecaca}
+  .status-bar.ok{display:none}
+  .spinner{width:14px;height:14px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── LAYOUT ── */
+  .body{display:flex;min-height:520px}
+  .side{width:232px;flex-shrink:0;border-right:1px solid #e5e7eb;padding:13px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+  .main{flex:1;padding:13px;display:flex;flex-direction:column;gap:10px;min-width:0}
+
+  /* ── SIDEBAR ── */
+  .lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7280}
+  .seg{display:flex;border:1px solid #d1d5db;border-radius:6px;overflow:hidden}
+  .seg button{flex:1;padding:5px 6px;font-size:12px;background:#fff;border:none;cursor:pointer;color:#6b7280}
+  .seg button.on{background:#f3f4f6;color:#111827;font-weight:600}
+  .area-row{display:flex;gap:4px}
+  .ab{flex:1;padding:5px 4px;font-size:11px;font-weight:600;border:none;border-radius:6px;cursor:pointer;text-align:center;opacity:.35;transition:opacity .15s}
+  .ab.on{opacity:1}
+  .ab.N{background:#dbeafe;color:#1e3a8a}
+  .ab.C{background:#dcfce7;color:#14532d}
+  .ab.S{background:#fef9c3;color:#713f12}
+  .q-row{display:flex;gap:4px}
+  .qb{flex:1;padding:4px 0;font-size:11px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:#374151}
+  .qb:hover{background:#f9fafb}
+
+  /* ── GLOBAL SEARCH ── */
+  .gsw{position:relative}
+  .gs{width:100%;padding:6px 10px;font-size:12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#111}
+  .gs:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .gdrop{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:99;overflow:hidden;max-height:200px;overflow-y:auto}
+  .gdi{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;border-bottom:1px solid #f3f4f6}
+  .gdi:last-child{border:none}
+  .gdi:hover{background:#f9fafb}
+  .gdi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .gdi-name{font-size:12px;flex:1}
+  .gdi-sub{font-size:10px;color:#9ca3af}
+  .gdi-val{font-size:11px;color:#6b7280;font-weight:600}
+
+  /* ── LOCAL LIST ── */
+  .list-wrap{flex:1;overflow-y:auto;border:1px solid #e5e7eb;border-radius:6px;max-height:240px}
+  .li{display:flex;align-items:center;gap:7px;padding:5px 9px;cursor:pointer;border-bottom:1px solid #f3f4f6}
+  .li:last-child{border:none}
+  .li:hover{background:#f9fafb}
+  .li.on{background:#eff6ff}
+  .li-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .li-name{font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .li-sub{font-size:10px;color:#9ca3af}
+  .li-val{font-size:11px;font-weight:600;color:#6b7280}
+  .sel-count{font-size:10px;color:#9ca3af;text-align:right}
+
+  /* ── LEVELS + BM ── */
+  .lvl-row{display:flex;gap:4px}
+  .lvb{flex:1;padding:4px 0;font-size:11px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:#374151;text-align:center}
+  .lvb.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+  .bm-row{display:flex;flex-wrap:wrap;gap:4px}
+  .bmp{padding:3px 9px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;background:#fff;color:#374151}
+
+  /* ── CHIPS ── */
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent}
+  .chip .x{font-size:13px;line-height:1;opacity:.65}
+  .chip:hover .x{opacity:1}
+  .chip.N{background:#dbeafe;color:#1e3a8a;border-color:#bfdbfe}
+  .chip.C{background:#dcfce7;color:#14532d;border-color:#bbf7d0}
+  .chip.S{background:#fef9c3;color:#713f12;border-color:#fef08a}
+
+  /* ── CARDS ── */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:9px 11px}
+  .card-lbl{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;margin-bottom:4px}
+  .card-val{font-size:20px;font-weight:700}
+  .card-sub{font-size:10px;color:#9ca3af;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ── LEGEND ── */
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#6b7280}
+  .legend span{display:flex;align-items:center;gap:4px}
+  .legend i{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+  .chart-outer{position:relative;width:100%}
+  .empty{color:#9ca3af;font-size:13px;padding:28px 0;text-align:center}
+
+  /* ── PRINT ── */
+  .print-note{display:none;font-size:11px;color:#666;margin-top:3px}
+  @media print{
+    .side,.print-btn,.status-bar{display:none!important}
+    .body{display:block}
+    .main{padding:0}
+    .print-note{display:block!important}
+    .chips{margin-bottom:8px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONFIGURAZIONE — incolla il link CSV del tuo Google Sheet
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+  const SHEET_CSV_URL = "INSERISCI_QUI_IL_LINK_CSV";  // ← INCOLLA QUI IL LINK CSV DI GOOGLE SHEETS
+  // Esempio: "https://docs.google.com/spreadsheets/d/1AbC.../pub?gid=0&single=true&output=csv"
+  // Istruzioni complete nel foglio "Istruzioni" del file Excel allegato
+</script>
+<!-- ══════════════════════════════════════════════════════════ -->
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Costo medio orario operai edili — Maggio 2025</div>
+    <div class="hdr-sub">Fonte: Min. del Lavoro · CCNL Edilizia · Elaborazione ANCE Piemonte V.d.A.</div>
+    <div class="print-note" id="print-note"></div>
+  </div>
+  <button class="print-btn" onclick="doPrint()">
+    <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Stampa / PDF
+  </button>
+</div>
+
+<div class="status-bar loading" id="statusbar">
+  <div class="spinner"></div>
+  <span id="statusmsg">Caricamento dati da Google Sheets…</span>
+</div>
+
+<div class="body">
+  <div class="side">
+    <div class="seg" id="mseg">
+      <button class="on" onclick="setMode('province')">Province</button>
+      <button onclick="setMode('regioni')">Regioni</button>
+    </div>
+    <div>
+      <div class="lbl" style="margin-bottom:6px">Filtra per area</div>
+      <div class="area-row">
+        <button class="ab N on" data-a="N" onclick="toggleArea(this)">Nord</button>
+        <button class="ab C"    data-a="C" onclick="toggleArea(this)">Centro</button>
+        <button class="ab S"    data-a="S" onclick="toggleArea(this)">Sud</button>
+      </div>
+    </div>
+    <div>
+      <div class="lbl" style="margin-bottom:6px">Cerca e aggiungi</div>
+      <div class="gsw">
+        <input class="gs" id="gsearch" placeholder="Es: Catania, Milano, Sassari…" oninput="onGSearch()" onfocus="onGSearch()" onblur="setTimeout(()=>{document.getElementById('gdrop').style.display='none'},200)">
+        <div class="gdrop" id="gdrop" style="display:none"></div>
+      </div>
+    </div>
+    <div>
+      <div class="lbl" style="margin-bottom:5px">Selezione rapida</div>
+      <div class="q-row">
+        <button class="qb" onclick="selAll()">Tutte</button>
+        <button class="qb" onclick="selNone()">Nessuna</button>
+      </div>
+    </div>
+    <div class="list-wrap" id="loc-list"></div>
+    <div class="sel-count" id="sel-count"></div>
+    <div>
+      <div class="lbl" style="margin-bottom:6px">Livello contrattuale</div>
+      <div class="lvl-row">
+        <button class="lvb on" data-lv="lv1" onclick="setLv(this)">1°</button>
+        <button class="lvb"    data-lv="lv2" onclick="setLv(this)">2°</button>
+        <button class="lvb"    data-lv="lv3" onclick="setLv(this)">3°</button>
+        <button class="lvb"    data-lv="lv4" onclick="setLv(this)">4°</button>
+      </div>
+    </div>
+    <div>
+      <div class="lbl" style="margin-bottom:6px">Benchmark</div>
+      <div class="bm-row" id="bmrow"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="cards" id="cards"><div class="empty">In attesa dei dati…</div></div>
+    <div class="chips" id="chips"></div>
+    <div class="legend" id="legend"></div>
+    <div class="chart-outer" id="co"><canvas id="ch"></canvas></div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const ACOL  = {N:'#1e3a8a', C:'#14532d', S:'#713f12'};
+const ABG   = {N:'#dbeafe', C:'#dcfce7', S:'#fef9c3'};
+const ANAME = {N:'Nord',    C:'Centro',  S:'Sud e Isole'};
+const LVLABELS = ['1° livello','2° livello','3° livello','4° livello'];
+const LVS      = ['lv1','lv2','lv3','lv4'];
+const BMS = [
+  {k:'naz', lbl:'Media naz.', col:'#374151'},
+  {k:'N',   lbl:'Nord',       col:'#1e3a8a'},
+  {k:'C',   lbl:'Centro',     col:'#14532d'},
+  {k:'S',   lbl:'Sud',        col:'#713f12'}
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let RAW = [];
+let mode='province', lv='lv1', sel=new Set(), aFilter=new Set(['N']), activeBms=new Set(['naz']);
+let chart=null;
+
+// ─── UTILITIES ───────────────────────────────────────────────────────────────
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+
+function aCode(areaStr){
+  if(!areaStr) return 'S';
+  const s = areaStr.trim().toLowerCase();
+  if(s==='nord') return 'N';
+  if(s==='centro') return 'C';
+  return 'S';
+}
+
+function parseNum(v){
+  if(v===undefined||v===null||v==='') return 0;
+  return parseFloat(String(v).replace(',','.')) || 0;
+}
+
+// ─── DATA LOADING ─────────────────────────────────────────────────────────────
+function setStatus(type, msg){
+  const bar = document.getElementById('statusbar');
+  const txt = document.getElementById('statusmsg');
+  bar.className = 'status-bar ' + type;
+  txt.textContent = msg;
+}
+
+function loadData(){
+  const url = typeof SHEET_CSV_URL !== 'undefined' ? SHEET_CSV_URL : '';
+
+  if(!url || url === 'INSERISCI_QUI_IL_LINK_CSV'){
+    setStatus('error','⚠  Link Google Sheets non configurato. Apri il file HTML, cerca SHEET_CSV_URL e incolla il tuo link CSV.');
+    return;
+  }
+
+  setStatus('loading','Caricamento dati da Google Sheets…');
+
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results){
+      if(!results.data || results.data.length === 0){
+        setStatus('error','Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV e che il link sia corretto.');
+        return;
+      }
+      RAW = results.data.map(r => ({
+        r:   (r['Regione']  || r['regione']  || '').trim(),
+        p:   (r['Sigla']    || r['sigla']    || '').trim(),
+        c:   (r['Città']    || r['Citta']    || r['citta'] || '').trim(),
+        a:   aCode(r['Area'] || r['area'] || ''),
+        lv1: parseNum(r['1° liv'] || r['1 liv'] || r['lv1']),
+        lv2: parseNum(r['2° liv'] || r['2 liv'] || r['lv2']),
+        lv3: parseNum(r['3° liv'] || r['3 liv'] || r['lv3']),
+        lv4: parseNum(r['4° liv'] || r['4 liv'] || r['lv4']),
+      })).filter(r => r.p && r.c);
+
+      setStatus('ok','');
+      applyFilter();
+      buildBmBtns();
+      renderList();
+      render();
+    },
+    error: function(err){
+      setStatus('error','Errore nel caricamento: ' + err.message + ' — Controlla il link CSV e che il foglio sia pubblicato pubblicamente.');
+    }
+  });
+}
+
+// ─── ITEMS ───────────────────────────────────────────────────────────────────
+function getRegioni(){
+  return [...new Set(RAW.map(d=>d.r))].sort();
+}
+
+function getItems(){
+  if(mode==='province'){
+    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
+      .map(d=>({id:d.p, lbl:d.p+' · '+d.c, sub:d.r, val:d[lv], a:d.a}));
+  }
+  return getRegioni().map(r=>{
+    const rows=RAW.filter(d=>d.r===r);
+    return {id:r, lbl:r, sub:ANAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a};
+  }).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+}
+
+function getAllItems(){
+  if(mode==='province'){
+    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
+      .map(d=>({id:d.p, lbl:d.c, sub:d.r, val:d[lv], a:d.a}));
+  }
+  return getRegioni().map(r=>{
+    const rows=RAW.filter(d=>d.r===r);
+    return {id:r, lbl:r, sub:ANAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a};
+  }).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+}
+
+// ─── BENCHMARK ───────────────────────────────────────────────────────────────
+function bmVal(k){
+  if(k==='naz') return avg(RAW.map(d=>d[lv]));
+  if(['N','C','S'].includes(k)) return avg(RAW.filter(d=>d.a===k).map(d=>d[lv]));
+  return 0;
+}
+
+function buildBmBtns(){
+  document.getElementById('bmrow').innerHTML = BMS.map(b=>{
+    const on = activeBms.has(b.k);
+    return `<button class="bmp" data-bm="${b.k}" onclick="toggleBm(this)" style="${on?`background:${b.col};color:#fff;border-color:${b.col}`:''}">${b.lbl}</button>`;
+  }).join('');
+}
+
+function toggleBm(btn){
+  const k = btn.dataset.bm;
+  const bm = BMS.find(b=>b.k===k);
+  if(activeBms.has(k)){activeBms.delete(k); btn.style.cssText='';}
+  else{activeBms.add(k); btn.style.cssText=`background:${bm.col};color:#fff;border-color:${bm.col}`;}
+  render();
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function setMode(m){
+  mode=m; sel.clear();
+  document.querySelectorAll('#mseg button').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===m));
+  applyFilter(); renderList(); render();
+}
+
+function toggleArea(btn){
+  const a = btn.dataset.a;
+  if(aFilter.has(a) && aFilter.size===1) return;
+  if(aFilter.has(a)){aFilter.delete(a); btn.classList.remove('on');}
+  else{aFilter.add(a); btn.classList.add('on');}
+  sel.clear(); applyFilter(); renderList(); render();
+}
+
+function applyFilter(){
+  sel.clear();
+  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
+}
+
+function selAll(){
+  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
+  renderList(); render();
+}
+function selNone(){ sel.clear(); renderList(); render(); }
+
+function toggle(id){
+  if(sel.has(id)) sel.delete(id); else sel.add(id);
+  renderList(); renderChips(); render();
+}
+
+function setLv(btn){
+  lv = btn.dataset.lv;
+  document.querySelectorAll('.lvb').forEach(b=>b.classList.toggle('on', b.dataset.lv===lv));
+  renderList(); renderChips(); render();
+}
+
+// ─── SEARCH DROPDOWN ─────────────────────────────────────────────────────────
+function onGSearch(){
+  const q = document.getElementById('gsearch').value.trim().toLowerCase();
+  const drop = document.getElementById('gdrop');
+  if(q.length < 1){ drop.style.display='none'; return; }
+  const hits = getAllItems().filter(i=>i.lbl.toLowerCase().includes(q)||i.sub.toLowerCase().includes(q)).slice(0,10);
+  if(!hits.length){ drop.style.display='none'; return; }
+  drop.innerHTML = hits.map(i=>`
+    <div class="gdi" data-id="${i.id}" onclick="addFromDrop(this.dataset.id)">
+      <div class="gdi-dot" style="background:${ACOL[i.a]}"></div>
+      <div style="flex:1;min-width:0"><div class="gdi-name">${i.lbl}</div><div class="gdi-sub">${i.sub}</div></div>
+      <div class="gdi-val">€${i.val.toFixed(2)}</div>
+    </div>`).join('');
+  drop.style.display = 'block';
+}
+
+function addFromDrop(id){
+  sel.add(id);
+  document.getElementById('gsearch').value = '';
+  document.getElementById('gdrop').style.display = 'none';
+  renderList(); renderChips(); render();
+}
+
+// ─── RENDER LIST ─────────────────────────────────────────────────────────────
+function renderList(){
+  const items = getItems().filter(i=>aFilter.has(i.a));
+  document.getElementById('loc-list').innerHTML = items.map(it=>`
+    <div class="li${sel.has(it.id)?' on':''}" data-id="${it.id}" onclick="toggle(this.dataset.id)">
+      <div class="li-dot" style="background:${ACOL[it.a]}"></div>
+      <div style="flex:1;min-width:0"><div class="li-name">${it.lbl}</div><div class="li-sub">${it.sub}</div></div>
+      <div class="li-val">€${it.val.toFixed(2)}</div>
+    </div>`).join('') || '<div class="empty" style="padding:16px">Nessun dato</div>';
+  document.getElementById('sel-count').textContent = `${sel.size} selezionati`;
+}
+
+// ─── RENDER CHIPS ────────────────────────────────────────────────────────────
+function renderChips(){
+  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+  document.getElementById('chips').innerHTML = items.map(i=>`
+    <span class="chip ${i.a}" data-id="${i.id}" onclick="toggle(this.dataset.id)" title="Rimuovi ${i.lbl}">
+      ${i.lbl} <span class="x">×</span>
+    </span>`).join('');
+}
+
+// ─── RENDER CHART ────────────────────────────────────────────────────────────
+function render(){
+  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>b.val-a.val);
+  renderChips();
+
+  if(!items.length){
+    document.getElementById('cards').innerHTML = '<div class="empty" style="grid-column:1/-1">Seleziona elementi dalla lista o usa la ricerca.</div>';
+    document.getElementById('legend').innerHTML = '';
+    if(chart){ chart.destroy(); chart=null; }
+    document.getElementById('co').style.height = '60px';
+    return;
+  }
+
+  const vals = items.map(i=>parseFloat(i.val.toFixed(2)));
+
+  const datasets = [{
+    label: LVLABELS[LVS.indexOf(lv)],
+    data: vals,
+    backgroundColor: items.map(i=>ABG[i.a]),
+    borderColor: items.map(i=>ACOL[i.a]),
+    borderWidth: 1.5, borderRadius: 4, type:'bar'
+  }];
+
+  activeBms.forEach(k=>{
+    const bm = BMS.find(b=>b.k===k);
+    const v  = parseFloat(bmVal(k).toFixed(2));
+    datasets.push({
+      label:bm.lbl, data:Array(items.length).fill(v),
+      type:'line', borderColor:bm.col, borderWidth:2,
+      borderDash:[5,4], pointRadius:0, fill:false, tension:0
+    });
+  });
+
+  const allV   = [...vals, ...[...activeBms].map(k=>bmVal(k))];
+  const minV   = Math.max(0, Math.floor(Math.min(...allV))-1);
+  const maxV   = Math.ceil(Math.max(...allV))+1;
+  const h      = Math.max(200, items.length*38+60);
+  document.getElementById('co').style.height = h+'px';
+
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById('ch'),{
+    type:'bar',
+    data:{ labels:items.map(i=>i.lbl), datasets },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.type==='line'
+          ?`── ${ctx.dataset.label}: €${ctx.parsed.x.toFixed(2)}/h`
+          :`€${ctx.parsed.x.toFixed(2)}/h`}}
+      },
+      scales:{
+        x:{min:minV, max:maxV, ticks:{callback:v=>`€${v}`, font:{size:11}}, grid:{color:'rgba(0,0,0,0.06)'}},
+        y:{ticks:{font:{size:11}}, grid:{display:false}}
+      }
+    }
+  });
+
+  // Cards
+  const m=avg(vals), mn=Math.min(...vals), mx=Math.max(...vals);
+  const nat=bmVal('naz'), diff=m-nat;
+  const mxIt=items[vals.indexOf(mx)], mnIt=items[vals.indexOf(mn)];
+  document.getElementById('cards').innerHTML=`
+    <div class="card"><div class="card-lbl">Media selezione</div><div class="card-val" style="color:#111">€${m.toFixed(2)}</div><div class="card-sub">${items.length} voci · ${LVLABELS[LVS.indexOf(lv)]}</div></div>
+    <div class="card"><div class="card-lbl">vs. media naz.</div><div class="card-val" style="color:${diff>=0?'#991b1b':'#166534'}">${diff>=0?'+':''}${diff.toFixed(2)}</div><div class="card-sub">naz. €${nat.toFixed(2)}/h</div></div>
+    <div class="card"><div class="card-lbl">Minimo</div><div class="card-val" style="color:#166534">€${mn.toFixed(2)}</div><div class="card-sub">${mnIt.lbl}</div></div>
+    <div class="card"><div class="card-lbl">Massimo</div><div class="card-val" style="color:#991b1b">€${mx.toFixed(2)}</div><div class="card-sub">${mxIt.lbl}</div></div>`;
+
+  // Legend
+  const areasUsed = [...new Set(items.map(i=>i.a))];
+  document.getElementById('legend').innerHTML = [
+    ...areasUsed.map(a=>`<span><i style="background:${ABG[a]};border:1.5px solid ${ACOL[a]}"></i>${ANAME[a]}</span>`),
+    ...[...activeBms].map(k=>{
+      const bm=BMS.find(b=>b.k===k);
+      return `<span><i style="background:${bm.col};height:2px;border-radius:0"></i>${bm.lbl} €${bmVal(k).toFixed(2)}</span>`;
+    })
+  ].join('');
+}
+
+// ─── PRINT ───────────────────────────────────────────────────────────────────
+function doPrint(){
+  const items = getAllItems().filter(i=>sel.has(i.id));
+  const lvlbl = LVLABELS[LVS.indexOf(lv)];
+  const areas = [...aFilter].map(a=>ANAME[a]).join(', ');
+  document.getElementById('print-note').textContent =
+    `Filtro: ${areas} · ${mode} · ${lvlbl} · ${items.length} voci · Stampato il ${new Date().toLocaleDateString('it-IT')}`;
+  window.print();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildBmBtns();
+loadData();
+</script>
+</body>
+</html>
