@@ -391,7 +391,9 @@ body {
   align-items: center;
   gap: 8px;
   border-left: 3px solid;
+  line-height: 1.5;
 }
+.status-bar button { vertical-align: baseline; }
 .status-bar.loading { background: var(--blue-light); color: var(--blue-text); border-color: var(--blue); }
 .status-bar.error { background: #fef2f2; color: var(--danger); border-color: var(--danger); }
 .status-bar.ok { display: none; }
@@ -1059,18 +1061,27 @@ function loadData(){
   const url = (typeof SHEET_CSV_URL !== 'undefined') ? SHEET_CSV_URL : '';
 
   if(!url || url === 'INSERISCI_QUI_IL_LINK_CSV'){
-    setStatus('error', 'Collegamento Google Sheets non configurato. Apri il file HTML e inserisci il link CSV nella variabile SHEET_CSV_URL.');
+    setStatus('error', 'Collegamento Google Sheets non configurato. Inserisci il link CSV nella variabile SHEET_CSV_URL.');
     return;
   }
 
-  setStatus('loading', 'Connessione a Google Sheets in corso…');
+  setStatus('loading', 'Connessione a Google Sheets…');
+
+  // Timeout: se nessuna risposta in 20s mostra errore con pulsante retry
+  const timer = setTimeout(() => {
+    setStatus('error', 'Il foglio non risponde (timeout 20s). Google Sheets può essere lento dopo molti aggiornamenti — <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+  }, 20000);
 
   Papa.parse(url, {
     download: true,
     header: true,
     skipEmptyLines: true,
     complete({ data }){
-      if(!data?.length){ setStatus('error','Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV pubblico.'); return; }
+      clearTimeout(timer);
+      if(!data?.length){
+        setStatus('error', 'Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV pubblico. <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+        return;
+      }
 
       RAW = data.map(r => ({
         r:   (r['Regione'] || r['regione'] || '').trim(),
@@ -1083,7 +1094,10 @@ function loadData(){
         lv4: pNum(r['4° liv'] || r['4 liv'] || r['lv4']),
       })).filter(r => r.p && r.c);
 
-      if(!RAW.length){ setStatus('error','CSV letto ma senza righe valide. Controlla le colonne Sigla e Città.'); return; }
+      if(!RAW.length){
+        setStatus('error', 'CSV letto ma senza righe valide. Controlla le colonne Sigla e Città. <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+        return;
+      }
 
       setStatus('ok','');
       buildBmBtns();
@@ -1092,7 +1106,8 @@ function loadData(){
       render();
     },
     error({ message }){
-      setStatus('error', 'Errore caricamento: ' + message + ' — Controlla URL e permessi del foglio.');
+      clearTimeout(timer);
+      setStatus('error', `Errore: ${message} — <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>`);
     }
   });
 }
@@ -1609,17 +1624,25 @@ function loadDettagli(){
     detSetStatus('error','Collegamento foglio Dettagli non configurato. Inserisci DETTAGLI_CSV_URL nel file HTML.');
     return;
   }
-  detSetStatus('loading','Caricamento dati Analisi per voce da Google Sheets…');
+  detSetStatus('loading','Caricamento Analisi per voce da Google Sheets…');
+
+  const timer = setTimeout(() => {
+    detSetStatus('error', 'Il foglio non risponde (timeout 20s). <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+  }, 20000);
 
   Papa.parse(url, {
     download: true,
     header: false,
     skipEmptyLines: true,
     complete({ data }){
-      if(!data?.length){ detSetStatus('error','Nessun dato ricevuto dal foglio Dettagli.'); return; }
+      clearTimeout(timer);
+      if(!data?.length){
+        detSetStatus('error','Nessun dato ricevuto dal foglio Dettagli. <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+        return;
+      }
 
       // Build per-province map
-      const byProv = new Map(); // sigla → [{row cols}]
+      const byProv = new Map();
       data.forEach(row => {
         const sig = (row[1] || '').trim();
         if(!sig) return;
@@ -1652,31 +1675,26 @@ function loadDettagli(){
           };
         });
 
-        const areaCode = aCode(RAW.find(d=>d.p===sig)?.a || 'S');
-        const aVal = RAW.find(d=>d.p===sig)?.a || 'S';
+        const rawEntry = RAW.find(d=>d.p===sig);
+        const aVal = rawEntry?.a || 'S';
 
-        DET_DATA.set(sig, {
-          r: prov.r,
-          p: sig,
-          c: prov.c,
-          a: aVal,
-          data: parsedData,
-          cassaPercent,
-        });
+        DET_DATA.set(sig, { r:prov.r, p:sig, c:prov.c, a:aVal, data:parsedData, cassaPercent });
 
         if(!detRegMap.has(prov.r)) detRegMap.set(prov.r, []);
         detRegMap.get(prov.r).push(sig);
       });
 
-      if(!DET_DATA.size){ detSetStatus('error','Dati letti ma nessuna provincia trovata. Controlla la struttura del foglio.'); return; }
+      if(!DET_DATA.size){
+        detSetStatus('error','Dati letti ma nessuna provincia trovata. Controlla la struttura del foglio. <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
+        return;
+      }
 
       detSetStatus('ok','');
       document.getElementById('tab-info').textContent = `${DET_DATA.size} province caricate`;
 
-      // Default: load Nord provinces from RAW
+      // Default: province Nord
       DET_DATA.forEach((prov, sig) => {
-        const raw = RAW.find(d=>d.p===sig);
-        if(raw && raw.a === 'N') detSel.add(sig);
+        if(prov.a === 'N') detSel.add(sig);
       });
 
       detRenderList();
@@ -1684,7 +1702,8 @@ function loadDettagli(){
       detRenderTable();
     },
     error({ message }){
-      detSetStatus('error','Errore: ' + message);
+      clearTimeout(timer);
+      detSetStatus('error', `Errore: ${message} — <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>`);
     }
   });
 }
@@ -1916,4 +1935,5 @@ function detRenderTable(){
 </script>
 </body>
 </html>
+
 
