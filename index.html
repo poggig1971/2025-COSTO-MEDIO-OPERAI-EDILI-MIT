@@ -72,9 +72,7 @@
     align-items:flex-start;
     gap:14px;
   }
-  .hdr-left{
-    min-width:0;
-  }
+  .hdr-left{ min-width:0; }
   .hdr-topline{
     display:flex;
     align-items:center;
@@ -103,16 +101,8 @@
     letter-spacing:-.03em;
     color:#0f172a;
   }
-  .hdr-sub{
-    font-size:12px;
-    color:var(--muted);
-    margin-top:5px;
-  }
-  .hdr-meta{
-    margin-top:8px;
-    font-size:11px;
-    color:var(--muted-2);
-  }
+  .hdr-sub{ font-size:12px; color:var(--muted); margin-top:5px; }
+  .hdr-meta{ margin-top:8px; font-size:11px; color:var(--muted-2); }
 
   .print-btn{
     display:inline-flex;
@@ -134,9 +124,7 @@
     transform:translateY(-1px);
     box-shadow:0 10px 20px rgba(15,23,42,.08);
   }
-  .print-btn svg{
-    width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round
-  }
+  .print-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
   /* STATUS */
   .status-bar{
@@ -150,22 +138,11 @@
     border:1px solid transparent;
     box-shadow:var(--shadow-soft);
   }
-  .status-bar.loading{
-    background:var(--info-bg);
-    color:var(--info);
-    border-color:#bfdbfe;
-  }
-  .status-bar.error{
-    background:var(--danger-bg);
-    color:var(--danger);
-    border-color:#fecaca;
-  }
-  .status-bar.ok{
-    display:none;
-  }
+  .status-bar.loading{ background:var(--info-bg); color:var(--info); border-color:#bfdbfe; }
+  .status-bar.error{ background:var(--danger-bg); color:var(--danger); border-color:#fecaca; }
+  .status-bar.ok{ display:none; }
   .spinner{
-    width:15px;
-    height:15px;
+    width:15px; height:15px;
     border:2px solid #bfdbfe;
     border-top-color:#1d4ed8;
     border-radius:50%;
@@ -245,9 +222,7 @@
     font-weight:600;
     transition:all .15s ease;
   }
-  .seg button:hover{
-    background:#f8fafc;
-  }
+  .seg button:hover{ background:#f8fafc; }
   .seg button.on{
     background:linear-gradient(180deg,#2563eb,#1d4ed8);
     color:#fff;
@@ -267,7 +242,6 @@
     text-align:center;
     opacity:.40;
     transition:all .16s ease;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);
   }
   .ab.on{
     opacity:1;
@@ -291,10 +265,7 @@
     font-weight:600;
     transition:all .15s ease;
   }
-  .qb:hover{
-    background:#f8fafc;
-    transform:translateY(-1px);
-  }
+  .qb:hover{ background:#f8fafc; transform:translateY(-1px); }
 
   /* SEARCH */
   .gsw{position:relative}
@@ -326,9 +297,63 @@
     box-shadow:0 18px 35px rgba(15,23,42,.14);
     z-index:99;
     overflow:hidden;
-    max-height:240px;
+    max-height:300px;
     overflow-y:auto;
   }
+
+  /* GROUP result in dropdown */
+  .gdi-group{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:10px 11px;
+    cursor:pointer;
+    border-bottom:2px solid #e0e7ff;
+    background:#eff6ff;
+    transition:background .12s ease;
+  }
+  .gdi-group:hover{background:#dbeafe}
+  .gdi-group-icon{
+    width:28px;height:28px;
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    flex-shrink:0;
+  }
+  .gdi-group-text{ flex:1; min-width:0; }
+  .gdi-group-name{
+    font-size:12px;
+    font-weight:800;
+    color:#1e3a8a;
+  }
+  .gdi-group-sub{
+    font-size:10px;
+    color:#64748b;
+    margin-top:1px;
+  }
+  .gdi-group-badge{
+    font-size:10px;
+    font-weight:700;
+    background:#dbeafe;
+    color:#1e40af;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid #bfdbfe;
+    white-space:nowrap;
+  }
+
+  /* Province divider inside dropdown */
+  .gdrop-divider{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:#94a3b8;
+    padding:6px 11px 4px;
+    border-bottom:1px solid #f1f5f9;
+    background:#fafafa;
+  }
+
   .gdi{
     display:flex;
     align-items:center;
@@ -340,24 +365,10 @@
   }
   .gdi:last-child{border:none}
   .gdi:hover{background:#f8fafc}
-  .gdi-dot{
-    width:9px;height:9px;border-radius:50%;flex-shrink:0
-  }
-  .gdi-name{
-    font-size:12px;
-    font-weight:600;
-    flex:1;
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
+  .gdi-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .gdi-name{font-size:12px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .gdi-sub{font-size:10px;color:#94a3b8}
-  .gdi-val{
-    font-size:11px;
-    color:#475569;
-    font-weight:800;
-  }
+  .gdi-val{font-size:11px;color:#475569;font-weight:800;}
 
   /* LOCAL LIST */
   .list-wrap{
@@ -369,92 +380,44 @@
     max-height:280px;
   }
   .li{
-    display:flex;
-    align-items:center;
-    gap:9px;
-    padding:8px 10px;
-    cursor:pointer;
+    display:flex;align-items:center;gap:9px;
+    padding:8px 10px;cursor:pointer;
     border-bottom:1px solid #f1f5f9;
-    transition:background .12s ease, transform .12s ease;
+    transition:background .12s ease;
   }
   .li:last-child{border:none}
   .li:hover{background:#f8fafc}
-  .li.on{
-    background:#eff6ff;
-  }
-  .li-dot{
-    width:8px;height:8px;border-radius:50%;flex-shrink:0
-  }
-  .li-name{
-    font-size:11.5px;
-    font-weight:600;
-    flex:1;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
+  .li.on{background:#eff6ff;}
+  .li-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .li-name{font-size:11.5px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .li-sub{font-size:10px;color:#94a3b8}
-  .li-val{
-    font-size:11px;
-    font-weight:800;
-    color:#475569;
-    flex-shrink:0;
-  }
-  .sel-count{
-    font-size:10px;
-    color:#94a3b8;
-    text-align:right;
-    margin-top:-4px;
-  }
+  .li-val{font-size:11px;font-weight:800;color:#475569;flex-shrink:0;}
+  .sel-count{font-size:10px;color:#94a3b8;text-align:right;margin-top:-4px;}
 
   /* LEVELS + BM */
   .lvl-row{display:flex;gap:6px}
   .lvb{
-    flex:1;
-    padding:8px 0;
-    font-size:11px;
-    border:1px solid var(--line-2);
-    border-radius:10px;
-    background:#fff;
-    cursor:pointer;
-    color:#334155;
-    text-align:center;
-    font-weight:700;
-    transition:all .15s ease;
+    flex:1;padding:8px 0;font-size:11px;
+    border:1px solid var(--line-2);border-radius:10px;
+    background:#fff;cursor:pointer;color:#334155;
+    text-align:center;font-weight:700;transition:all .15s ease;
   }
-  .lvb:hover{
-    background:#f8fafc;
-    transform:translateY(-1px);
-  }
+  .lvb:hover{background:#f8fafc;transform:translateY(-1px);}
   .lvb.on{
     background:linear-gradient(180deg,#2563eb,#1d4ed8);
-    color:#fff;
-    border-color:#1d4ed8;
+    color:#fff;border-color:#1d4ed8;
     box-shadow:0 8px 18px rgba(37,99,235,.20);
   }
 
-  .bm-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-  }
+  .bm-row{display:flex;flex-wrap:wrap;gap:6px;}
   .bmp{
-    padding:7px 10px;
-    border:1px solid var(--line-2);
-    border-radius:999px;
-    font-size:11px;
-    cursor:pointer;
-    background:#fff;
-    color:#334155;
-    font-weight:700;
-    transition:all .15s ease;
+    padding:7px 10px;border:1px solid var(--line-2);border-radius:999px;
+    font-size:11px;cursor:pointer;background:#fff;color:#334155;
+    font-weight:700;transition:all .15s ease;
   }
-  .bmp:hover{
-    transform:translateY(-1px);
-    box-shadow:var(--shadow-soft);
-  }
+  .bmp:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft);}
 
-  /* MAIN TOP INSIGHT */
+  /* INSIGHT */
   .insight{
     border:1px solid rgba(37,99,235,.12);
     background:linear-gradient(135deg, rgba(255,255,255,.88), rgba(239,246,255,.96));
@@ -462,229 +425,89 @@
     box-shadow:var(--shadow);
     padding:14px 16px;
   }
-  .insight-kicker{
-    font-size:10px;
-    font-weight:800;
-    letter-spacing:.09em;
-    text-transform:uppercase;
-    color:var(--primary);
-    margin-bottom:5px;
-  }
-  .insight-title{
-    font-size:15px;
-    font-weight:800;
-    line-height:1.3;
-    color:#0f172a;
-  }
-  .insight-sub{
-    margin-top:4px;
-    font-size:12px;
-    color:var(--muted);
-  }
+  .insight-kicker{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--primary);margin-bottom:5px;}
+  .insight-title{font-size:15px;font-weight:800;line-height:1.3;color:#0f172a;}
+  .insight-sub{margin-top:4px;font-size:12px;color:var(--muted);}
 
   /* CHIPS */
-  .chips{
-    display:flex;
-    flex-wrap:wrap;
-    gap:7px;
-  }
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
   .chip{
-    display:inline-flex;
-    align-items:center;
-    gap:5px;
-    padding:7px 11px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:700;
-    cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px;
+    padding:7px 11px;border-radius:999px;
+    font-size:11px;font-weight:700;cursor:pointer;
     border:1px solid transparent;
     box-shadow:var(--shadow-soft);
     transition:transform .12s ease, box-shadow .12s ease;
   }
-  .chip:hover{
-    transform:translateY(-1px);
-  }
-  .chip .x{
-    font-size:13px;
-    line-height:1;
-    opacity:.6
-  }
+  .chip:hover{transform:translateY(-1px);}
+  .chip .x{font-size:13px;line-height:1;opacity:.6}
   .chip:hover .x{opacity:1}
   .chip.N{background:var(--n-bg);color:var(--n);border-color:#bfdbfe}
   .chip.C{background:var(--c-bg);color:var(--c);border-color:#bbf7d0}
   .chip.S{background:var(--s-bg);color:var(--s);border-color:#fde68a}
 
   /* CARDS */
-  .cards{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:12px;
-  }
+  .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
   .card{
     background:var(--panel-strong);
     border:1px solid var(--line);
-    border-radius:18px;
-    padding:14px 14px 13px;
+    border-radius:18px;padding:14px 14px 13px;
     box-shadow:var(--shadow);
     transition:transform .15s ease, box-shadow .15s ease;
     min-width:0;
   }
-  .card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 18px 34px rgba(15,23,42,.10);
-  }
-  .card-lbl{
-    font-size:10px;
-    font-weight:800;
-    letter-spacing:.07em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin-bottom:7px;
-  }
-  .card-val{
-    font-size:28px;
-    line-height:1.05;
-    font-weight:800;
-    letter-spacing:-.03em;
-  }
-  .card-sub{
-    font-size:11px;
-    color:var(--muted-2);
-    margin-top:5px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(15,23,42,.10);}
+  .card-lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .card-val{font-size:28px;line-height:1.05;font-weight:800;letter-spacing:-.03em;}
+  .card-sub{font-size:11px;color:var(--muted-2);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* LEGEND */
-  .legend{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-    font-size:11px;
-    color:var(--muted);
-  }
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);}
   .legend span{
-    display:flex;
-    align-items:center;
-    gap:6px;
+    display:flex;align-items:center;gap:6px;
     background:rgba(255,255,255,.72);
     border:1px solid var(--line);
-    border-radius:999px;
-    padding:6px 10px;
+    border-radius:999px;padding:6px 10px;
     box-shadow:var(--shadow-soft);
   }
-  .legend i{
-    width:10px;
-    height:10px;
-    border-radius:3px;
-    flex-shrink:0;
-    display:inline-block;
-  }
+  .legend i{width:10px;height:10px;border-radius:3px;flex-shrink:0;display:inline-block;}
 
-  /* CHART PANEL */
+  /* CHART */
   .chart-panel{
     border:1px solid var(--line);
     background:var(--panel);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
-    border-radius:20px;
-    box-shadow:var(--shadow);
-    padding:14px;
+    border-radius:20px;box-shadow:var(--shadow);padding:14px;
   }
   .chart-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    gap:10px;
-    margin-bottom:10px;
-    flex-wrap:wrap;
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:10px;margin-bottom:10px;flex-wrap:wrap;
   }
-  .chart-title{
-    font-size:14px;
-    font-weight:800;
-    color:#0f172a;
-  }
-  .chart-sub{
-    font-size:11px;
-    color:var(--muted);
-    margin-top:2px;
-  }
+  .chart-title{font-size:14px;font-weight:800;color:#0f172a;}
+  .chart-sub{font-size:11px;color:var(--muted);margin-top:2px;}
   .chart-outer{
-    position:relative;
-    width:100%;
+    position:relative;width:100%;
     border-radius:14px;
     background:rgba(255,255,255,.72);
     border:1px solid rgba(15,23,42,.05);
     padding:10px 10px 6px;
   }
+  .empty{color:#94a3b8;font-size:13px;padding:28px 0;text-align:center;}
+  .print-note{display:none;font-size:11px;color:#666;margin-top:3px;}
 
-  .empty{
-    color:#94a3b8;
-    font-size:13px;
-    padding:28px 0;
-    text-align:center;
-  }
-
-  .print-note{
-    display:none;
-    font-size:11px;
-    color:#666;
-    margin-top:3px;
-  }
-
-  @media (max-width:1180px){
-    .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  }
-
-  @media (max-width:980px){
-    .body{flex-direction:column}
-    .side{width:100%}
-  }
-
-  @media (max-width:640px){
-    .hdr{
-      flex-direction:column;
-      align-items:stretch;
-    }
-    .print-btn{
-      justify-content:center;
-    }
-    .cards{grid-template-columns:1fr}
-  }
-
+  @media (max-width:1180px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:980px){.body{flex-direction:column}.side{width:100%}}
+  @media (max-width:640px){.hdr{flex-direction:column;align-items:stretch;}.print-btn{justify-content:center;}.cards{grid-template-columns:1fr}}
   @media print{
-    body{
-      background:#fff!important;
-    }
-    .app-shell{
-      max-width:none;
-      margin:0;
-      padding:0;
-    }
-    .side,.print-btn,.status-bar{
-      display:none!important
-    }
-    .body{
-      display:block;
-      margin-top:10px;
-    }
-    .main{
-      padding:0;
-      gap:8px;
-    }
-    .hdr,.insight,.card,.chart-panel,.section{
-      box-shadow:none!important;
-      background:#fff!important;
-      border:1px solid #d1d5db!important;
-      backdrop-filter:none!important;
-    }
-    .print-note{
-      display:block!important
-    }
-    .chips{
-      margin-bottom:8px
-    }
+    body{background:#fff!important;}
+    .app-shell{max-width:none;margin:0;padding:0;}
+    .side,.print-btn,.status-bar{display:none!important}
+    .body{display:block;margin-top:10px;}
+    .main{padding:0;gap:8px;}
+    .hdr,.insight,.card,.chart-panel,.section{box-shadow:none!important;background:#fff!important;border:1px solid #d1d5db!important;backdrop-filter:none!important;}
+    .print-note{display:block!important}
+    .chips{margin-bottom:8px}
   }
 </style>
 </head>
@@ -692,10 +515,15 @@
 
 <div class="app-shell">
 
-  <!-- CONFIGURAZIONE -->
+  <!-- ════════════════════════════════════════════════════════
+       CONFIGURAZIONE — incolla il link CSV del tuo Google Sheet
+       ════════════════════════════════════════════════════════ -->
   <script>
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=1892027375&single=true&output=csv";
+    const SHEET_CSV_URL = "INSERISCI_QUI_IL_LINK_CSV";
+    // Esempio: "https://docs.google.com/spreadsheets/d/e/XXXX/pub?gid=0&single=true&output=csv"
+    // Istruzioni complete nel foglio "Istruzioni" del file Excel allegato
   </script>
+  <!-- ═══════════════════════════════════════════════════════ -->
 
   <div class="hdr">
     <div class="hdr-left">
@@ -707,7 +535,6 @@
       <div class="print-note" id="print-note"></div>
       <div class="hdr-meta" id="hdr-meta">Confronto dinamico per territori, livelli contrattuali e benchmark nazionali/territoriali.</div>
     </div>
-
     <button class="print-btn" onclick="doPrint()">
       <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Stampa / PDF
@@ -733,15 +560,19 @@
         <div class="lbl">Filtra per area</div>
         <div class="area-row">
           <button class="ab N on" data-a="N" onclick="toggleArea(this)">Nord</button>
-          <button class="ab C" data-a="C" onclick="toggleArea(this)">Centro</button>
-          <button class="ab S" data-a="S" onclick="toggleArea(this)">Sud</button>
+          <button class="ab C"    data-a="C" onclick="toggleArea(this)">Centro</button>
+          <button class="ab S"    data-a="S" onclick="toggleArea(this)">Sud</button>
         </div>
       </div>
 
       <div>
         <div class="lbl">Cerca e aggiungi</div>
         <div class="gsw">
-          <input class="gs" id="gsearch" placeholder="Es.: Catania, Milano, Sassari…" oninput="onGSearch()" onfocus="onGSearch()" onblur="setTimeout(()=>{document.getElementById('gdrop').style.display='none'},200)">
+          <input class="gs" id="gsearch"
+            placeholder="Regione (es. Piemonte) o città…"
+            oninput="onGSearch()"
+            onfocus="onGSearch()"
+            onblur="setTimeout(()=>{document.getElementById('gdrop').style.display='none'},220)">
           <div class="gdrop" id="gdrop" style="display:none"></div>
         </div>
       </div>
@@ -761,9 +592,9 @@
         <div class="lbl">Livello contrattuale</div>
         <div class="lvl-row">
           <button class="lvb on" data-lv="lv1" onclick="setLv(this)">1°</button>
-          <button class="lvb" data-lv="lv2" onclick="setLv(this)">2°</button>
-          <button class="lvb" data-lv="lv3" onclick="setLv(this)">3°</button>
-          <button class="lvb" data-lv="lv4" onclick="setLv(this)">4°</button>
+          <button class="lvb"    data-lv="lv2" onclick="setLv(this)">2°</button>
+          <button class="lvb"    data-lv="lv3" onclick="setLv(this)">3°</button>
+          <button class="lvb"    data-lv="lv4" onclick="setLv(this)">4°</button>
         </div>
       </div>
 
@@ -808,11 +639,12 @@
 </div>
 
 <script>
-/* CONFIG */
+/* ─── CONFIG ─────────────────────────────────────────────────────────────── */
 const ACOL  = {N:'#1e3a8a', C:'#14532d', S:'#713f12'};
 const ABG   = {N:'#dbeafe', C:'#dcfce7', S:'#fef9c3'};
 const ANAME = {N:'Nord', C:'Centro', S:'Sud e Isole'};
-const LVLABELS = ['1° livello','2° livello','3° livello','4° livello'];
+const AREA_ICON = {N:'🔵', C:'🟢', S:'🟡'};
+const LVLABELS  = ['1° livello','2° livello','3° livello','4° livello'];
 const LVS = ['lv1','lv2','lv3','lv4'];
 const BMS = [
   {k:'naz', lbl:'Media naz.', col:'#334155'},
@@ -821,19 +653,14 @@ const BMS = [
   {k:'S',   lbl:'Sud',        col:'#92400e'}
 ];
 
-/* STATE */
+/* ─── STATE ──────────────────────────────────────────────────────────────── */
 let RAW = [];
-let mode = 'province';
-let lv = 'lv1';
-let sel = new Set();
-let aFilter = new Set(['N']);
-let activeBms = new Set(['naz']);
+let mode = 'province', lv = 'lv1';
+let sel = new Set(), aFilter = new Set(['N']), activeBms = new Set(['naz']);
 let chart = null;
 
-/* UTILITIES */
-function avg(arr){
-  return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-}
+/* ─── UTILITIES ──────────────────────────────────────────────────────────── */
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
 
 function aCode(areaStr){
   if(!areaStr) return 'S';
@@ -848,15 +675,14 @@ function parseNum(v){
   return parseFloat(String(v).replace(',','.')) || 0;
 }
 
-/* STATUS */
+/* ─── STATUS ─────────────────────────────────────────────────────────────── */
 function setStatus(type, msg){
   const bar = document.getElementById('statusbar');
-  const txt = document.getElementById('statusmsg');
   bar.className = 'status-bar ' + type;
-  txt.textContent = msg;
+  document.getElementById('statusmsg').textContent = msg;
 }
 
-/* DATA LOADING */
+/* ─── DATA LOADING ───────────────────────────────────────────────────────── */
 function loadData(){
   const url = typeof SHEET_CSV_URL !== 'undefined' ? SHEET_CSV_URL : '';
 
@@ -868,19 +694,16 @@ function loadData(){
   setStatus('loading','Caricamento dati da Google Sheets…');
 
   Papa.parse(url, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: function(results){
-      if(!results.data || results.data.length === 0){
-        setStatus('error','Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV e che il link sia corretto.');
+    download: true, header: true, skipEmptyLines: true,
+    complete(results){
+      if(!results.data || !results.data.length){
+        setStatus('error','Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV.');
         return;
       }
-
       RAW = results.data.map(r => ({
         r:   (r['Regione'] || r['regione'] || '').trim(),
-        p:   (r['Sigla'] || r['sigla'] || '').trim(),
-        c:   (r['Città'] || r['Citta'] || r['citta'] || '').trim(),
+        p:   (r['Sigla']   || r['sigla']   || '').trim(),
+        c:   (r['Città']   || r['Citta']   || r['citta'] || '').trim(),
         a:   aCode(r['Area'] || r['area'] || ''),
         lv1: parseNum(r['1° liv'] || r['1 liv'] || r['lv1']),
         lv2: parseNum(r['2° liv'] || r['2 liv'] || r['lv2']),
@@ -888,449 +711,377 @@ function loadData(){
         lv4: parseNum(r['4° liv'] || r['4 liv'] || r['lv4']),
       })).filter(r => r.p && r.c);
 
-      if(!RAW.length){
-        setStatus('error','Il CSV è stato letto, ma non contiene righe valide con Sigla e Città.');
-        return;
-      }
+      if(!RAW.length){ setStatus('error','CSV letto ma senza righe valide con Sigla e Città.'); return; }
 
       setStatus('ok','');
-      applyFilter();
-      buildBmBtns();
-      renderList();
-      render();
+      applyFilter(); buildBmBtns(); renderList(); render();
     },
-    error: function(err){
-      setStatus('error','Errore nel caricamento: ' + err.message + ' — Controlla il link CSV e la pubblicazione del foglio.');
+    error(err){
+      setStatus('error','Errore: ' + err.message + ' — Controlla il link CSV e la pubblicazione del foglio.');
     }
   });
 }
 
-/* ITEMS */
+/* ─── ITEMS ──────────────────────────────────────────────────────────────── */
 function getRegioni(){
-  return [...new Set(RAW.map(d => d.r))].sort((a,b)=>a.localeCompare(b,'it'));
+  return [...new Set(RAW.map(d=>d.r))].sort((a,b)=>a.localeCompare(b,'it'));
 }
 
 function getItems(){
   if(mode === 'province'){
-    return [...RAW]
-      .sort((a,b)=>a.c.localeCompare(b.c,'it'))
-      .map(d => ({id:d.p, lbl:d.p + ' · ' + d.c, sub:d.r, val:d[lv], a:d.a}));
+    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
+      .map(d=>({id:d.p, lbl:d.p+' · '+d.c, sub:d.r, val:d[lv], a:d.a}));
   }
-
-  return getRegioni().map(r => {
-    const rows = RAW.filter(d => d.r === r);
-    return {
-      id:r,
-      lbl:r,
-      sub:ANAME[rows[0].a],
-      val:avg(rows.map(d=>d[lv])),
-      a:rows[0].a
-    };
-  }).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+  return getRegioni().map(r=>{
+    const rows = RAW.filter(d=>d.r===r);
+    return {id:r, lbl:r, sub:ANAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a};
+  });
 }
 
 function getAllItems(){
   if(mode === 'province'){
-    return [...RAW]
-      .sort((a,b)=>a.c.localeCompare(b.c,'it'))
-      .map(d => ({id:d.p, lbl:d.c, sub:d.r, val:d[lv], a:d.a}));
+    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
+      .map(d=>({id:d.p, lbl:d.c, sub:d.r, val:d[lv], a:d.a}));
   }
-
-  return getRegioni().map(r => {
-    const rows = RAW.filter(d => d.r === r);
-    return {
-      id:r,
-      lbl:r,
-      sub:ANAME[rows[0].a],
-      val:avg(rows.map(d=>d[lv])),
-      a:rows[0].a
-    };
-  }).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+  return getRegioni().map(r=>{
+    const rows = RAW.filter(d=>d.r===r);
+    return {id:r, lbl:r, sub:ANAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a};
+  });
 }
 
-/* BENCHMARK */
+/* ─── BENCHMARK ──────────────────────────────────────────────────────────── */
 function bmVal(k){
-  if(k === 'naz') return avg(RAW.map(d => d[lv]));
-  if(['N','C','S'].includes(k)) return avg(RAW.filter(d => d.a === k).map(d => d[lv]));
+  if(k==='naz') return avg(RAW.map(d=>d[lv]));
+  if(['N','C','S'].includes(k)) return avg(RAW.filter(d=>d.a===k).map(d=>d[lv]));
   return 0;
 }
 
 function buildBmBtns(){
-  document.getElementById('bmrow').innerHTML = BMS.map(b => {
+  document.getElementById('bmrow').innerHTML = BMS.map(b=>{
     const on = activeBms.has(b.k);
-    return `<button class="bmp" data-bm="${b.k}" onclick="toggleBm(this)" style="${on ? `background:${b.col};color:#fff;border-color:${b.col}` : ''}">${b.lbl}</button>`;
+    return `<button class="bmp" data-bm="${b.k}" onclick="toggleBm(this)" style="${on?`background:${b.col};color:#fff;border-color:${b.col}`:''}">${b.lbl}</button>`;
   }).join('');
 }
 
 function toggleBm(btn){
   const k = btn.dataset.bm;
-  const bm = BMS.find(b => b.k === k);
-
-  if(activeBms.has(k)){
-    activeBms.delete(k);
-    btn.style.cssText = '';
-  }else{
-    activeBms.add(k);
-    btn.style.cssText = `background:${bm.col};color:#fff;border-color:${bm.col}`;
-  }
+  const bm = BMS.find(b=>b.k===k);
+  if(activeBms.has(k)){ activeBms.delete(k); btn.style.cssText=''; }
+  else{ activeBms.add(k); btn.style.cssText=`background:${bm.col};color:#fff;border-color:${bm.col}`; }
   render();
 }
 
-/* CONTROLS */
+/* ─── CONTROLS ───────────────────────────────────────────────────────────── */
 function setMode(m){
-  mode = m;
-  sel.clear();
-  document.querySelectorAll('#mseg button').forEach((b,i) => b.classList.toggle('on', ['province','regioni'][i] === m));
-  applyFilter();
-  renderList();
-  render();
+  mode=m; sel.clear();
+  document.querySelectorAll('#mseg button').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===m));
+  applyFilter(); renderList(); render();
 }
 
 function toggleArea(btn){
   const a = btn.dataset.a;
-  if(aFilter.has(a) && aFilter.size === 1) return;
-
-  if(aFilter.has(a)){
-    aFilter.delete(a);
-    btn.classList.remove('on');
-  }else{
-    aFilter.add(a);
-    btn.classList.add('on');
-  }
-
-  sel.clear();
-  applyFilter();
-  renderList();
-  render();
+  if(aFilter.has(a) && aFilter.size===1) return;
+  if(aFilter.has(a)){ aFilter.delete(a); btn.classList.remove('on'); }
+  else{ aFilter.add(a); btn.classList.add('on'); }
+  sel.clear(); applyFilter(); renderList(); render();
 }
 
 function applyFilter(){
   sel.clear();
-  getItems().filter(i => aFilter.has(i.a)).forEach(i => sel.add(i.id));
+  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
 }
 
 function selAll(){
-  getItems().filter(i => aFilter.has(i.a)).forEach(i => sel.add(i.id));
-  renderList();
-  render();
+  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
+  renderList(); render();
 }
-
-function selNone(){
-  sel.clear();
-  renderList();
-  render();
-}
+function selNone(){ sel.clear(); renderList(); render(); }
 
 function toggle(id){
-  if(sel.has(id)) sel.delete(id);
-  else sel.add(id);
-  renderList();
-  renderChips();
-  render();
+  if(sel.has(id)) sel.delete(id); else sel.add(id);
+  renderList(); renderChips(); render();
 }
 
 function setLv(btn){
   lv = btn.dataset.lv;
-  document.querySelectorAll('.lvb').forEach(b => b.classList.toggle('on', b.dataset.lv === lv));
-  renderList();
-  renderChips();
-  render();
+  document.querySelectorAll('.lvb').forEach(b=>b.classList.toggle('on',b.dataset.lv===lv));
+  renderList(); renderChips(); render();
 }
 
-/* SEARCH DROPDOWN */
+/* ─── SEARCH DROPDOWN (con gruppo-regione) ───────────────────────────────── */
 function onGSearch(){
   const q = document.getElementById('gsearch').value.trim().toLowerCase();
   const drop = document.getElementById('gdrop');
+  if(q.length < 1){ drop.style.display='none'; return; }
 
-  if(q.length < 1){
-    drop.style.display = 'none';
-    return;
+  let html = '';
+
+  // 1. Cerca corrispondenze di REGIONE (solo in modalità province)
+  if(mode === 'province'){
+    const regMatches = getRegioni().filter(r=>r.toLowerCase().includes(q));
+    regMatches.forEach(reg=>{
+      const provinceDiReg = RAW.filter(d=>d.r===reg).sort((a,b)=>a.c.localeCompare(b.c,'it'));
+      if(!provinceDiReg.length) return;
+      const a = provinceDiReg[0].a;
+      const mVal = avg(provinceDiReg.map(d=>d[lv]));
+      const alreadySel = provinceDiReg.every(d=>sel.has(d.p));
+      html += `
+        <div class="gdi-group" onclick="addRegionGroup('${reg.replace(/'/g,"\\'")}')">
+          <div class="gdi-group-icon" style="background:${ABG[a]}">${AREA_ICON[a]}</div>
+          <div class="gdi-group-text">
+            <div class="gdi-group-name">${reg} — tutte le province</div>
+            <div class="gdi-group-sub">${provinceDiReg.length} province · media €${mVal.toFixed(2)}/h · ${ANAME[a]}</div>
+          </div>
+          <div class="gdi-group-badge">${alreadySel ? '✓ già sel.' : '+ Aggiungi tutte'}</div>
+        </div>`;
+      // singole province della regione trovata
+      html += `<div class="gdrop-divider">Province di ${reg}</div>`;
+      provinceDiReg.slice(0,6).forEach(d=>{
+        html += `
+          <div class="gdi" data-id="${d.p}" onclick="addFromDrop(this.dataset.id)">
+            <div class="gdi-dot" style="background:${ACOL[d.a]}"></div>
+            <div style="flex:1;min-width:0">
+              <div class="gdi-name">${d.c}</div>
+              <div class="gdi-sub">${d.p} · ${sel.has(d.p)?'✓ selezionata':''}</div>
+            </div>
+            <div class="gdi-val">€${d[lv].toFixed(2)}</div>
+          </div>`;
+      });
+      if(provinceDiReg.length > 6){
+        html += `<div class="gdrop-divider" style="color:#1d4ed8;cursor:pointer" onclick="addRegionGroup('${reg.replace(/'/g,"\\'")}')">+ altre ${provinceDiReg.length-6} province — clicca per aggiungerle tutte</div>`;
+      }
+    });
   }
 
+  // 2. Cerca per nome città / sigla (esclude quelle già mostrate come gruppo)
+  const regGroupShown = mode==='province' ? getRegioni().filter(r=>r.toLowerCase().includes(q)) : [];
   const hits = getAllItems()
-    .filter(i => i.lbl.toLowerCase().includes(q) || i.sub.toLowerCase().includes(q))
-    .slice(0,10);
+    .filter(i=>{
+      if(!i.lbl.toLowerCase().includes(q) && !i.sub.toLowerCase().includes(q)) return false;
+      // escludi province già mostrate nel gruppo regione sopra
+      if(mode==='province'){
+        const entry = RAW.find(d=>d.p===i.id);
+        if(entry && regGroupShown.includes(entry.r)) return false;
+      }
+      return true;
+    })
+    .slice(0,8);
 
-  if(!hits.length){
-    drop.style.display = 'none';
-    return;
+  if(hits.length){
+    if(html) html += `<div class="gdrop-divider">Risultati per "${q}"</div>`;
+    hits.forEach(i=>{
+      html += `
+        <div class="gdi" data-id="${i.id}" onclick="addFromDrop(this.dataset.id)">
+          <div class="gdi-dot" style="background:${ACOL[i.a]}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="gdi-name">${i.lbl}</div>
+            <div class="gdi-sub">${i.sub}${sel.has(i.id)?' · ✓ selezionata':''}</div>
+          </div>
+          <div class="gdi-val">€${i.val.toFixed(2)}</div>
+        </div>`;
+    });
   }
 
-  drop.innerHTML = hits.map(i => `
-    <div class="gdi" data-id="${i.id}" onclick="addFromDrop(this.dataset.id)">
-      <div class="gdi-dot" style="background:${ACOL[i.a]}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="gdi-name">${i.lbl}</div>
-        <div class="gdi-sub">${i.sub}</div>
-      </div>
-      <div class="gdi-val">€${i.val.toFixed(2)}</div>
-    </div>
-  `).join('');
-
+  if(!html){ drop.style.display='none'; return; }
+  drop.innerHTML = html;
   drop.style.display = 'block';
+}
+
+// Aggiungi tutte le province di una regione
+function addRegionGroup(regName){
+  RAW.filter(d=>d.r===regName).forEach(d=>sel.add(d.p));
+  document.getElementById('gsearch').value = '';
+  document.getElementById('gdrop').style.display = 'none';
+  renderList(); renderChips(); render();
 }
 
 function addFromDrop(id){
   sel.add(id);
   document.getElementById('gsearch').value = '';
   document.getElementById('gdrop').style.display = 'none';
-  renderList();
-  renderChips();
-  render();
+  renderList(); renderChips(); render();
 }
 
-/* RENDER LIST */
+/* ─── RENDER LIST ────────────────────────────────────────────────────────── */
 function renderList(){
-  const items = getItems().filter(i => aFilter.has(i.a));
-
-  document.getElementById('loc-list').innerHTML = items.map(it => `
-    <div class="li${sel.has(it.id) ? ' on' : ''}" data-id="${it.id}" onclick="toggle(this.dataset.id)">
+  const items = getItems().filter(i=>aFilter.has(i.a));
+  document.getElementById('loc-list').innerHTML = items.map(it=>`
+    <div class="li${sel.has(it.id)?' on':''}" data-id="${it.id}" onclick="toggle(this.dataset.id)">
       <div class="li-dot" style="background:${ACOL[it.a]}"></div>
       <div style="flex:1;min-width:0">
         <div class="li-name">${it.lbl}</div>
         <div class="li-sub">${it.sub}</div>
       </div>
       <div class="li-val">€${it.val.toFixed(2)}</div>
-    </div>
-  `).join('') || '<div class="empty" style="padding:16px">Nessun dato</div>';
-
+    </div>`).join('') || '<div class="empty" style="padding:16px">Nessun dato</div>';
   document.getElementById('sel-count').textContent = `${sel.size} selezionati`;
 }
 
-/* RENDER CHIPS */
+/* ─── RENDER CHIPS ───────────────────────────────────────────────────────── */
 function renderChips(){
-  const items = getAllItems()
-    .filter(i => sel.has(i.id))
-    .sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
-
-  document.getElementById('chips').innerHTML = items.map(i => `
+  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+  document.getElementById('chips').innerHTML = items.map(i=>`
     <span class="chip ${i.a}" data-id="${i.id}" onclick="toggle(this.dataset.id)" title="Rimuovi ${i.lbl}">
       ${i.lbl} <span class="x">×</span>
-    </span>
-  `).join('');
+    </span>`).join('');
 }
 
-/* INSIGHT */
+/* ─── RENDER INSIGHT ─────────────────────────────────────────────────────── */
 function renderInsight(items, vals){
   const box = document.getElementById('insight-box');
-
   if(!items.length){
     box.innerHTML = `
       <div class="insight-kicker">Lettura automatica</div>
       <div class="insight-title">Seleziona territori per costruire il confronto</div>
-      <div class="insight-sub">La dashboard confronterà automaticamente media selezionata, benchmark e differenze territoriali.</div>
-    `;
+      <div class="insight-sub">Usa i filtri area, la lista o la ricerca per aggiungere province o regioni al grafico.</div>`;
     return;
   }
-
-  const m = avg(vals);
-  const nat = bmVal('naz');
-  const diff = m - nat;
-  const max = Math.max(...vals);
-  const min = Math.min(...vals);
-  const maxIt = items[vals.indexOf(max)];
-  const minIt = items[vals.indexOf(min)];
-
-  let msg1 = '';
-  if(diff > 0.01){
-    msg1 = `La selezione evidenzia un costo medio superiore alla media nazionale di €${diff.toFixed(2)}/h.`;
-  }else if(diff < -0.01){
-    msg1 = `La selezione evidenzia un costo medio inferiore alla media nazionale di €${Math.abs(diff).toFixed(2)}/h.`;
-  }else{
-    msg1 = `La selezione è sostanzialmente allineata alla media nazionale.`;
-  }
-
+  const m = avg(vals), nat = bmVal('naz'), diff = m-nat;
+  const mx = Math.max(...vals), mn = Math.min(...vals);
+  const mxIt = items[vals.indexOf(mx)], mnIt = items[vals.indexOf(mn)];
+  const msg = diff > 0.01
+    ? `La selezione evidenzia un costo medio superiore alla media nazionale di €${diff.toFixed(2)}/h.`
+    : diff < -0.01
+    ? `La selezione evidenzia un costo medio inferiore alla media nazionale di €${Math.abs(diff).toFixed(2)}/h.`
+    : `La selezione è sostanzialmente allineata alla media nazionale.`;
   box.innerHTML = `
     <div class="insight-kicker">Lettura automatica</div>
-    <div class="insight-title">${msg1}</div>
+    <div class="insight-title">${msg}</div>
     <div class="insight-sub">
-      Nella selezione corrente il valore più elevato è <strong>${maxIt.lbl}</strong> (€${max.toFixed(2)}/h),
-      mentre il più contenuto è <strong>${minIt.lbl}</strong> (€${min.toFixed(2)}/h).
-    </div>
-  `;
+      Valore più elevato: <strong>${mxIt.lbl}</strong> (€${mx.toFixed(2)}/h) —
+      più contenuto: <strong>${mnIt.lbl}</strong> (€${mn.toFixed(2)}/h).
+    </div>`;
 }
 
-/* RENDER CHART + CARDS */
+/* ─── RENDER CHART + CARDS ───────────────────────────────────────────────── */
 function render(){
-  const items = getAllItems()
-    .filter(i => sel.has(i.id))
-    .sort((a,b) => b.val - a.val);
-
+  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>b.val-a.val);
   renderChips();
 
-  const chartSub = document.getElementById('chart-sub');
-  chartSub.textContent = `${mode === 'province' ? 'Province' : 'Regioni'} · ${LVLABELS[LVS.indexOf(lv)]} · ${items.length} elementi selezionati`;
+  document.getElementById('chart-sub').textContent =
+    `${mode==='province'?'Province':'Regioni'} · ${LVLABELS[LVS.indexOf(lv)]} · ${items.length} elementi selezionati`;
 
   if(!items.length){
-    renderInsight([], []);
+    renderInsight([],[]);
     document.getElementById('cards').innerHTML = '<div class="empty" style="grid-column:1/-1">Seleziona elementi dalla lista o usa la ricerca.</div>';
     document.getElementById('legend').innerHTML = '';
-    if(chart){
-      chart.destroy();
-      chart = null;
-    }
+    if(chart){ chart.destroy(); chart=null; }
     document.getElementById('co').style.height = '70px';
     return;
   }
 
-  const vals = items.map(i => parseFloat(i.val.toFixed(2)));
+  const vals = items.map(i=>parseFloat(i.val.toFixed(2)));
   renderInsight(items, vals);
 
   const datasets = [{
     label: LVLABELS[LVS.indexOf(lv)],
     data: vals,
-    backgroundColor: items.map(i => ABG[i.a]),
-    borderColor: items.map(i => ACOL[i.a]),
-    borderWidth: 1.6,
-    borderRadius: 6,
-    barThickness: 18,
-    maxBarThickness: 22,
-    type: 'bar'
+    backgroundColor: items.map(i=>ABG[i.a]),
+    borderColor: items.map(i=>ACOL[i.a]),
+    borderWidth:1.6, borderRadius:6, barThickness:18, maxBarThickness:22, type:'bar'
   }];
 
-  activeBms.forEach(k => {
-    const bm = BMS.find(b => b.k === k);
+  activeBms.forEach(k=>{
+    const bm = BMS.find(b=>b.k===k);
     const v = parseFloat(bmVal(k).toFixed(2));
     datasets.push({
-      label: bm.lbl,
-      data: Array(items.length).fill(v),
-      type: 'line',
-      borderColor: bm.col,
-      borderWidth: 2,
-      borderDash: [6,4],
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      fill: false,
-      tension: 0
+      label:bm.lbl, data:Array(items.length).fill(v),
+      type:'line', borderColor:bm.col, borderWidth:2,
+      borderDash:[6,4], pointRadius:0, pointHoverRadius:0, fill:false, tension:0
     });
   });
 
-  const allV = [...vals, ...[...activeBms].map(k => bmVal(k))];
-  const minV = Math.max(0, Math.floor(Math.min(...allV)) - 1);
-  const maxV = Math.ceil(Math.max(...allV)) + 1;
-  const h = Math.max(260, items.length * 40 + 80);
-  document.getElementById('co').style.height = h + 'px';
+  const allV = [...vals,...[...activeBms].map(k=>bmVal(k))];
+  const minV = Math.max(0, Math.floor(Math.min(...allV))-1);
+  const maxV = Math.ceil(Math.max(...allV))+1;
+  const h = Math.max(260, items.length*40+80);
+  document.getElementById('co').style.height = h+'px';
 
   if(chart) chart.destroy();
-
-  chart = new Chart(document.getElementById('ch'), {
+  chart = new Chart(document.getElementById('ch'),{
     type:'bar',
-    data:{
-      labels: items.map(i => i.lbl),
-      datasets
-    },
+    data:{ labels:items.map(i=>i.lbl), datasets },
     options:{
-      indexAxis:'y',
-      responsive:true,
-      maintainAspectRatio:false,
-      animation:{
-        duration:700,
-        easing:'easeOutQuart'
-      },
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      animation:{ duration:700, easing:'easeOutQuart' },
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#0f172a',
-          titleColor:'#fff',
-          bodyColor:'#e2e8f0',
-          padding:10,
-          cornerRadius:10,
+          backgroundColor:'#0f172a', titleColor:'#fff', bodyColor:'#e2e8f0',
+          padding:10, cornerRadius:10,
           callbacks:{
-            label:ctx => ctx.dataset.type === 'line'
-              ? `Benchmark ${ctx.dataset.label}: €${ctx.parsed.x.toFixed(2)}/h`
-              : `Costo medio: €${ctx.parsed.x.toFixed(2)}/h`
+            label:ctx=>ctx.dataset.type==='line'
+              ?`Benchmark ${ctx.dataset.label}: €${ctx.parsed.x.toFixed(2)}/h`
+              :`Costo medio: €${ctx.parsed.x.toFixed(2)}/h`
           }
         }
       },
       scales:{
         x:{
-          min:minV,
-          max:maxV,
-          ticks:{
-            callback:v => `€${v}`,
-            font:{size:11}
-          },
-          grid:{
-            color:'rgba(15,23,42,0.07)'
-          },
-          border:{
-            color:'rgba(15,23,42,0.08)'
-          }
+          min:minV, max:maxV,
+          ticks:{callback:v=>`€${v}`, font:{size:11}},
+          grid:{color:'rgba(15,23,42,0.07)'},
+          border:{color:'rgba(15,23,42,0.08)'}
         },
         y:{
-          ticks:{
-            font:{size:11}
-          },
+          ticks:{font:{size:11}},
           grid:{display:false},
-          border:{
-            color:'rgba(15,23,42,0.08)'
-          }
+          border:{color:'rgba(15,23,42,0.08)'}
         }
       }
     }
   });
 
-  /* CARDS */
-  const m = avg(vals);
-  const mn = Math.min(...vals);
-  const mx = Math.max(...vals);
-  const nat = bmVal('naz');
-  const diff = m - nat;
-  const mxIt = items[vals.indexOf(mx)];
-  const mnIt = items[vals.indexOf(mn)];
-
-  document.getElementById('cards').innerHTML = `
+  /* Cards */
+  const m=avg(vals), mn2=Math.min(...vals), mx2=Math.max(...vals);
+  const nat=bmVal('naz'), diff=m-nat;
+  const mxIt=items[vals.indexOf(mx2)], mnIt=items[vals.indexOf(mn2)];
+  document.getElementById('cards').innerHTML=`
     <div class="card">
       <div class="card-lbl">Media selezione</div>
       <div class="card-val" style="color:#0f172a">€${m.toFixed(2)}</div>
       <div class="card-sub">${items.length} voci · ${LVLABELS[LVS.indexOf(lv)]}</div>
     </div>
-
     <div class="card">
       <div class="card-lbl">Scostamento vs media naz.</div>
-      <div class="card-val" style="color:${diff >= 0 ? '#991b1b' : '#166534'}">${diff >= 0 ? '+' : ''}${diff.toFixed(2)}</div>
+      <div class="card-val" style="color:${diff>=0?'#991b1b':'#166534'}">${diff>=0?'+':''}${diff.toFixed(2)}</div>
       <div class="card-sub">Benchmark nazionale: €${nat.toFixed(2)}/h</div>
     </div>
-
     <div class="card">
       <div class="card-lbl">Minimo</div>
-      <div class="card-val" style="color:#166534">€${mn.toFixed(2)}</div>
+      <div class="card-val" style="color:#166534">€${mn2.toFixed(2)}</div>
       <div class="card-sub">${mnIt.lbl}</div>
     </div>
-
     <div class="card">
       <div class="card-lbl">Massimo</div>
-      <div class="card-val" style="color:#991b1b">€${mx.toFixed(2)}</div>
+      <div class="card-val" style="color:#991b1b">€${mx2.toFixed(2)}</div>
       <div class="card-sub">${mxIt.lbl}</div>
-    </div>
-  `;
+    </div>`;
 
-  /* LEGEND */
-  const areasUsed = [...new Set(items.map(i => i.a))];
+  /* Legend */
+  const areasUsed = [...new Set(items.map(i=>i.a))];
   document.getElementById('legend').innerHTML = [
-    ...areasUsed.map(a => `<span><i style="background:${ABG[a]};border:1.5px solid ${ACOL[a]}"></i>${ANAME[a]}</span>`),
-    ...[...activeBms].map(k => {
-      const bm = BMS.find(b => b.k === k);
+    ...areasUsed.map(a=>`<span><i style="background:${ABG[a]};border:1.5px solid ${ACOL[a]}"></i>${ANAME[a]}</span>`),
+    ...[...activeBms].map(k=>{
+      const bm=BMS.find(b=>b.k===k);
       return `<span><i style="background:${bm.col};height:2px;border-radius:0;width:14px"></i>${bm.lbl} €${bmVal(k).toFixed(2)}</span>`;
     })
   ].join('');
 }
 
-/* PRINT */
+/* ─── PRINT ──────────────────────────────────────────────────────────────── */
 function doPrint(){
-  const items = getAllItems().filter(i => sel.has(i.id));
-  const lvlbl = LVLABELS[LVS.indexOf(lv)];
-  const areas = [...aFilter].map(a => ANAME[a]).join(', ');
-
+  const items = getAllItems().filter(i=>sel.has(i.id));
+  const areas = [...aFilter].map(a=>ANAME[a]).join(', ');
   document.getElementById('print-note').textContent =
-    `Filtro: ${areas} · ${mode} · ${lvlbl} · ${items.length} voci · Stampato il ${new Date().toLocaleDateString('it-IT')}`;
-
+    `Filtro: ${areas} · ${mode} · ${LVLABELS[LVS.indexOf(lv)]} · ${items.length} voci · Stampato il ${new Date().toLocaleDateString('it-IT')}`;
   window.print();
 }
 
-/* INIT */
+/* ─── INIT ───────────────────────────────────────────────────────────────── */
 buildBmBtns();
 loadData();
 </script>
 </body>
 </html>
+
