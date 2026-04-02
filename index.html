@@ -974,6 +974,7 @@ body {
       <div class="quick-row">
         <button class="quick-btn" onclick="selAll()">Tutte</button>
         <button class="quick-btn" onclick="selNone()">Nessuna</button>
+        <button class="quick-btn" onclick="selMetro()">Città metro</button>
       </div>
     </div>
 
@@ -1404,7 +1405,12 @@ function toggle(id){
   if(sel.has(id)) sel.delete(id); else sel.add(id);
   renderList(); renderChips(); render();
 }
-
+function selMetro(){
+  const metro = ['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
+  sel.clear();
+  RAW.filter(d => metro.includes(d.p)).forEach(d => sel.add(d.p));
+  renderList(); renderChips(); render();
+}
 function setLv(btn){
   lv = btn.dataset.lv;
   document.querySelectorAll('.lv-btn').forEach(b=>b.classList.toggle('on', b.dataset.lv===lv));
