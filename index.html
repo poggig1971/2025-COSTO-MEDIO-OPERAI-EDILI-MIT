@@ -1071,6 +1071,7 @@ body {
       <div class="quick-row">
         <button class="quick-btn" onclick="detSelAll()">Tutte</button>
         <button class="quick-btn" onclick="detSelNone()">Nessuna</button>
+        <button class="quick-btn" onclick="detSelMetro()">Città metro</button>
       </div>
     </div>
 
@@ -1947,7 +1948,14 @@ function detSelNone(){
   detSel.clear();
   detRenderList(); detRenderChips(); detRenderTable();
 }
-
+function detSelMetro(){
+  const metro = ['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
+  detSel.clear();
+  DET_DATA.forEach((prov, sig) => {
+    if(metro.includes(sig)) detSel.add(sig);
+  });
+  detRenderList(); detRenderChips(); detRenderTable();
+}
 function detSetLv(btn){
   detLv = btn.dataset.lv;
   document.querySelectorAll('#det-lv-row .lv-btn').forEach(b=>b.classList.toggle('on', b.dataset.lv===detLv));
