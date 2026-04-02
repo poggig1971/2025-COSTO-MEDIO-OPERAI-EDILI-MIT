@@ -1145,7 +1145,7 @@ body {
         </div>
         <div class="modal-row">
           <div class="modal-tag">Elaborazione</div>
-          <div class="modal-desc"><strong>ANCE Piemonte Valle d'Aosta</strong></div>
+          <div class="modal-desc"><strong>ANCE Piemonte Valle d'Aosta S.E.&O.</strong></div>
         </div>
         <div class="modal-row">
           <div class="modal-tag">Copertura</div>
@@ -1786,7 +1786,7 @@ function doPrint(){
   const items = getAllItems().filter(i=>sel.has(i.id));
   const areas = [...aFilter].map(a=>AREA_NAME[a]).join(', ');
   document.getElementById('print-note').textContent =
-    `Elaborazione: ANCE Piemonte V.d.A. · Filtro: ${areas} · ${mode} · ${LV_LABELS[LVS.indexOf(lv)]} · ${items.length} voci · ${new Date().toLocaleDateString('it-IT')}`;
+    `Elaborazione: ANCE Piemonte V.d.A. S.E.&O.· Filtro: ${areas} · ${mode} · ${LV_LABELS[LVS.indexOf(lv)]} · ${items.length} voci · ${new Date().toLocaleDateString('it-IT')}`;
   window.print();
 }
 
