@@ -3,920 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Costo Medio Orario Operai Edili — elaborazione ANCE Piemonte VdA</title>
+<title>Costo Medio Orario — ANCE Piemonte VdA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231e3a8a'/><text x='50' y='72' font-size='62' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>€</text></svg>">
 <style>
-/* ─── RESET + TOKENS ─────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --blue:       #1e3a8a;
-  --blue-mid:   #2c4fa3;
-  --blue-light: #dbeafe;
-  --blue-text:  #1e40af;
-  --bg:         #ffffff;
-  --surface:    #ffffff;
-  --border:     #e5e7eb;
-  --border-med: #d1d5db;
-  --text:       #111827;
-  --text-2:     #374151;
-  --text-3:     #6b7280;
-  --text-4:     #9ca3af;
-  --nord:       #1e3a8a;
-  --nord-bg:    #eff6ff;
-  --centro:     #065f46;
-  --centro-bg:  #ecfdf5;
-  --sud:        #92400e;
-  --sud-bg:     #fffbeb;
-  --danger:     #b91c1c;
-  --success:    #15803d;
-  --header-h:   88px;
-  --tabbar-h:   40px;
-  --side-w:     264px;
-  --font:       'IBM Plex Sans', system-ui, sans-serif;
-  --mono:       'IBM Plex Mono', monospace;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--font);
-  font-size: 12px;
-  color: var(--text);
-  background: var(--bg);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ─── HEADER ─────────────────────────────────────────────────────────────── */
-.header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: var(--header-h);
-  background: var(--blue);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.header-link {
-  display: inline-block;
-  margin-top: 6px;
-  font-size: 0.9rem;
-  color: #9ca3af; /* grigio elegante */
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.header-link:hover {
-  color: #d1d5db; /* grigio più chiaro al passaggio */
-  text-decoration: underline;
-}
-.header-left {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-}
-
-.header-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -.01em;
-}
-
-.header-sub {
-  font-size: 14px;
-  color: rgba(255,255,255,.55);
-  font-weight: 400;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-badge {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.55);
-  border: 1px solid rgba(255,255,255,.15);
-  padding: 4px 8px;
-  border-radius: 3px;
-}
-
-.btn-print {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.85);
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background .15s;
-}
-.btn-print:hover { background: rgba(255,255,255,.14); }
-.btn-print svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ─── SHELL ──────────────────────────────────────────────────────────────── */
-.shell {
-  display: flex;
-  padding-top: calc(var(--header-h) + var(--tabbar-h));
-  min-height: 100vh;
-}
-
-/* ─── SIDEBAR ────────────────────────────────────────────────────────────── */
-.sidebar {
-  width: var(--side-w);
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  position: sticky;
-  top: calc(var(--header-h) + var(--tabbar-h));
-  height: calc(100vh - var(--header-h) - var(--tabbar-h));
-  overflow-y: auto;
-  padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.sb-section { display: flex; flex-direction: column; gap: 7px; }
-
-.sb-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-4);
-}
-
-/* Mode toggle */
-.mode-toggle {
-  display: flex;
-  border: 1px solid var(--border-med);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.mode-btn {
-  flex: 1;
-  padding: 8px 6px;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--surface);
-  border: none;
-  cursor: pointer;
-  color: var(--text-3);
-  transition: all .15s;
-  border-right: 1px solid var(--border-med);
-}
-.mode-btn:last-child { border-right: none; }
-.mode-btn:hover { background: var(--bg); color: var(--text); }
-.mode-btn.on {
-  background: var(--blue);
-  color: #fff;
-  font-weight: 600;
-}
-
-/* Area filters */
-.area-btns { display: flex; gap: 5px; }
-.area-btn {
-  flex: 1;
-  padding: 7px 4px;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--border-med);
-  border-radius: 3px;
-  background: var(--surface);
-  cursor: pointer;
-  color: var(--text-3);
-  text-align: center;
-  transition: all .15s;
-}
-.area-btn:hover { border-color: var(--blue); color: var(--blue-text); }
-.area-btn.on.N { background: var(--nord-bg); border-color: var(--nord); color: var(--nord); }
-.area-btn.on.C { background: var(--centro-bg); border-color: var(--centro); color: var(--centro); }
-.area-btn.on.S { background: var(--sud-bg); border-color: var(--sud); color: var(--sud); }
-
-/* Search */
-.search-wrap { position: relative; }
-.search-input {
-  width: 100%;
-  padding: 8px 10px;
-  font-family: var(--font);
-  font-size: 12px;
-  border: 1px solid var(--border-med);
-  border-radius: 3px;
-  background: var(--surface);
-  color: var(--text);
-  transition: border-color .15s;
-}
-.search-input::placeholder { color: var(--text-4); }
-.search-input:focus { outline: none; border-color: var(--blue); }
-
-.search-drop {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0; right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border-med);
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.10);
-  z-index: 200;
-  overflow: hidden;
-  max-height: 280px;
-  overflow-y: auto;
-}
-.search-drop::-webkit-scrollbar { width: 4px; }
-.search-drop::-webkit-scrollbar-thumb { background: var(--border); }
-
-.drop-group-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 10px;
-  cursor: pointer;
-  background: var(--blue-light);
-  border-bottom: 2px solid #bfdbfe;
-  transition: background .1s;
-}
-.drop-group-row:hover { background: #bfdbfe; }
-.drop-group-icon {
-  width: 24px; height: 24px;
-  border-radius: 3px;
-  background: var(--blue);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0;
-}
-.drop-group-text { flex: 1; min-width: 0; }
-.drop-group-name { font-size: 11px; font-weight: 700; color: var(--blue); }
-.drop-group-sub { font-size: 10px; color: var(--text-3); margin-top: 1px; }
-.drop-group-tag {
-  font-size: 9px; font-weight: 700; letter-spacing: .05em;
-  text-transform: uppercase;
-  background: var(--blue); color: #fff;
-  padding: 2px 6px; border-radius: 2px;
-  white-space: nowrap; flex-shrink: 0;
-}
-
-.drop-divider {
-  padding: 5px 10px 3px;
-  font-size: 10px; font-weight: 700;
-  letter-spacing: .08em; text-transform: uppercase;
-  color: var(--text-4);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.drop-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
-.drop-item:last-child { border-bottom: none; }
-.drop-item:hover { background: var(--bg); }
-.drop-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.drop-name { font-size: 12px; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drop-sub { font-size: 10px; color: var(--text-4); }
-.drop-val { font-size: 11px; font-weight: 600; color: var(--text-3); font-family: var(--mono); }
-
-/* Quick actions */
-.quick-row { display: flex; gap: 5px; }
-.quick-btn {
-  flex: 1; padding: 7px 0;
-  font-family: var(--font);
-  font-size: 11px; font-weight: 500;
-  border: 1px solid var(--border-med);
-  border-radius: 3px; background: var(--surface);
-  cursor: pointer; color: var(--text-3);
-  transition: all .15s;
-}
-.quick-btn:hover { background: var(--bg); border-color: var(--text-3); color: var(--text); }
-
-/* List */
-.list-box {
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  overflow-y: auto;
-  max-height: 260px;
-  background: var(--surface);
-}
-.list-box::-webkit-scrollbar { width: 4px; }
-.list-box::-webkit-scrollbar-thumb { background: var(--border); }
-
-.list-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 9px; cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
-.list-item:last-child { border-bottom: none; }
-.list-item:hover { background: var(--bg); }
-.list-item.on { background: var(--blue-light); }
-.list-item.on .li-name { color: var(--blue-text); font-weight: 600; }
-.li-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.li-name { font-size: 11.5px; font-weight: 400; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
-.li-sub { font-size: 9.5px; color: var(--text-4); }
-.li-val { font-size: 11px; font-weight: 600; color: var(--text-3); font-family: var(--mono); flex-shrink: 0; }
-
-.sel-count { font-size: 10px; color: var(--text-4); text-align: right; }
-
-/* Level buttons */
-.lv-row { display: flex; gap: 4px; }
-.lv-btn {
-  flex: 1; padding: 7px 0;
-  font-family: var(--font);
-  font-size: 11px; font-weight: 600;
-  border: 1px solid var(--border-med);
-  border-radius: 3px; background: var(--surface);
-  cursor: pointer; color: var(--text-3);
-  text-align: center; transition: all .15s;
-}
-.lv-btn:hover { border-color: var(--blue); color: var(--blue-text); }
-.lv-btn.on { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 700; }
-
-/* Benchmark */
-.bm-row { display: flex; flex-wrap: wrap; gap: 5px; }
-.bm-btn {
-  padding: 5px 9px;
-  font-family: var(--font);
-  font-size: 11px; font-weight: 500;
-  border: 1px solid var(--border-med);
-  border-radius: 3px; background: var(--surface);
-  cursor: pointer; color: var(--text-3);
-  transition: all .15s;
-}
-.bm-btn:hover { border-color: var(--text-3); color: var(--text); }
-
-/* ─── MAIN ───────────────────────────────────────────────────────────────── */
-.main {
-  flex: 1;
-  min-width: 0;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Status bar */
-.status-bar {
-  padding: 10px 14px;
-  border-radius: 3px;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid;
-  line-height: 1.5;
-}
-.status-bar button { vertical-align: baseline; }
-.status-bar.loading { background: var(--blue-light); color: var(--blue-text); border-color: var(--blue); }
-.status-bar.error { background: #fef2f2; color: var(--danger); border-color: var(--danger); }
-.status-bar.ok { display: none; }
-.spinner { width: 13px; height: 13px; border: 2px solid rgba(30,58,138,.25); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Insight box */
-.insight-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--blue);
-  border-radius: 0 3px 3px 0;
-  padding: 14px 16px;
-}
-.insight-tag {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  color: var(--blue-text);
-  margin-bottom: 5px;
-}
-.insight-title {
-  font-size: 14px; font-weight: 600;
-  color: var(--text); line-height: 1.4;
-}
-.insight-sub {
-  margin-top: 4px; font-size: 12px;
-  color: var(--text-3); line-height: 1.5;
-}
-.insight-sub strong { color: var(--text-2); font-weight: 600; }
-
-/* KPI Cards */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.kpi-card {
-  background: var(--surface);
-  border: none;
-  border-bottom: 2px solid var(--border-med);
-  border-radius: 3px;
-  padding: 14px 15px;
-  transition: border-bottom-color .15s;
-}
-.kpi-card.primary { border-bottom-color: var(--blue); }
-.kpi-card.up      { border-bottom-color: var(--danger); }
-.kpi-card.down    { border-bottom-color: var(--success); }
-
-.kpi-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-4); margin-bottom: 8px;
-}
-.kpi-value {
-  font-size: 26px; font-weight: 700;
-  letter-spacing: -.03em; line-height: 1;
-  font-family: var(--mono);
-}
-.kpi-card.primary .kpi-value { color: var(--blue); }
-.kpi-card.up      .kpi-value { color: var(--danger); }
-.kpi-card.down    .kpi-value { color: var(--success); }
-.kpi-card:not(.primary):not(.up):not(.down) .kpi-value { color: var(--text); }
-.kpi-sub {
-  margin-top: 6px; font-size: 10px;
-  color: var(--text-4); line-height: 1.4;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-/* Chips panel */
-.chips-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 10px 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-height: 42px;
-  align-items: center;
-}
-.chips-empty {
-  font-size: 11px;
-  color: var(--text-4);
-  font-style: italic;
-}
-.chip {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 9px; border-radius: 2px;
-  font-size: 11px; font-weight: 500;
-  cursor: pointer; border: 1px solid transparent;
-  transition: opacity .12s;
-}
-.chip:hover { opacity: .75; }
-.chip .x { font-size: 12px; line-height: 1; opacity: .6; margin-left: 1px; }
-.chip.N { background: var(--nord-bg); color: var(--nord); border-color: #bfdbfe; }
-.chip.C { background: var(--centro-bg); color: var(--centro); border-color: #a7f3d0; }
-.chip.S { background: var(--sud-bg); color: var(--sud); border-color: #fde68a; }
-
-/* Chart panel */
-.chart-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 16px;
-}
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-  gap: 12px;
-}
-.chart-title { font-size: 13px; font-weight: 600; color: var(--text); }
-.chart-meta { font-size: 11px; color: var(--text-4); margin-top: 2px; }
-
-.legend-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.legend-item {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 11px; color: var(--text-3);
-}
-.legend-swatch {
-  width: 10px; height: 10px;
-  border-radius: 1px; flex-shrink: 0;
-}
-.legend-line {
-  width: 16px; height: 2px;
-  flex-shrink: 0;
-  background: currentColor;
-  position: relative;
-}
-.legend-line::before, .legend-line::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  width: 4px; height: 2px;
-  background: var(--surface);
-}
-.legend-line::before { left: 3px; }
-.legend-line::after  { right: 3px; }
-
-.chart-container {
-  position: relative;
-  width: 100%;
-}
-
-/* Print note */
-.print-note { display: none; font-size: 10px; color: var(--text-4); margin-top: 4px; }
-
-/* Empty + loading states */
-.state-empty {
-  padding: 40px 0;
-  text-align: center;
-  color: var(--text-4);
-}
-.state-empty-icon {
-  font-size: 28px;
-  margin-bottom: 10px;
-  opacity: .4;
-}
-.state-empty-text {
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 800px) {
-  .shell { flex-direction: column; }
-  .sidebar { position: static; width: 100%; height: auto; }
-  .header-sub { display: none; }
-}
-@media (max-width: 540px) {
-  .kpi-row { grid-template-columns: 1fr 1fr; }
-  .main { padding: 12px; }
-}
-
-/* ─── MODAL ISTRUZIONI ───────────────────────────────────────────────────── */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15,23,42,.45);
-  z-index: 500;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 80px 16px 24px;
-  overflow-y: auto;
-}
-.modal-overlay.open { display: flex; }
-
-.modal-box {
-  background: #fff;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  width: 100%;
-  max-width: 680px;
-  box-shadow: 0 24px 60px rgba(15,23,42,.18);
-  overflow: hidden;
-  animation: modalIn .18s ease;
-}
-@keyframes modalIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:none; } }
-
-.modal-header {
-  background: var(--blue);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.modal-header-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-.modal-header-close {
-  width: 28px; height: 28px;
-  border-radius: 3px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.18);
-  color: #fff;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .12s;
-}
-.modal-header-close:hover { background: rgba(255,255,255,.22); }
-
-.modal-body { padding: 0; }
-
-.modal-section {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.modal-section:last-child { border-bottom: none; }
-
-.modal-section-title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--blue-text);
-  margin-bottom: 10px;
-}
-
-.modal-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
-  align-items: flex-start;
-}
-.modal-row:last-child { margin-bottom: 0; }
-.modal-tag {
-  flex-shrink: 0;
-  min-width: 130px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-2);
-  padding-top: 1px;
-}
-.modal-desc {
-  font-size: 12px;
-  color: var(--text-3);
-  line-height: 1.55;
-}
-.modal-desc strong { color: var(--text-2); font-weight: 600; }
-
-.modal-note {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background: var(--blue-light);
-  border-left: 3px solid var(--blue);
-  border-radius: 0 3px 3px 0;
-  font-size: 11px;
-  color: var(--blue-text);
-  line-height: 1.55;
-}
-
-/* Pulsante "?" nell'header */
-.btn-help {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px; height: 30px;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255,255,255,.85);
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background .15s;
-  flex-shrink: 0;
-}
-.btn-help:hover { background: rgba(255,255,255,.18); }
-
-/* ─── TAB BAR ────────────────────────────────────────────────────────────── */
-.tab-bar {
-  position: fixed;
-  top: var(--header-h);
-  left: 0; right: 0;
-  height: var(--tabbar-h);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  gap: 0;
-  z-index: 99;
-}
-.tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 18px;
-  height: 100%;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-3);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all .15s;
-  margin-bottom: -1px;
-}
-.tab-btn:hover { color: var(--text); }
-.tab-btn.on { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
-.tab-bar-sep { flex: 1; }
-.tab-bar-info { font-size: 10px; color: var(--text-4); }
-
-/* ─── VIEW SECTIONS ──────────────────────────────────────────────────────── */
-.view-section { display: none; }
-.view-section.active { display: block; }
-
-/* ─── DETAIL TABLE ───────────────────────────────────────────────────────── */
-.det-table-outer {
-  overflow: auto;
-  max-height: calc(100vh - var(--header-h) - var(--tabbar-h) - 130px);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-}
-.det-table-outer::-webkit-scrollbar { width: 6px; height: 6px; }
-.det-table-outer::-webkit-scrollbar-track { background: var(--bg); }
-.det-table-outer::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 3px; }
-
-.det-table {
-  border-collapse: collapse;
-  width: max-content;
-  min-width: 100%;
-  font-size: 12px;
-}
-
-/* Sticky header (province names) */
-.det-table thead tr th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: var(--blue);
-  color: #fff;
-  font-weight: 600;
-  text-align: center;
-  padding: 8px 10px 7px;
-  border-right: 1px solid rgba(255,255,255,.12);
-  white-space: nowrap;
-  min-width: 108px;
-}
-.det-table thead tr th:first-child {
-  text-align: left;
-  position: sticky;
-  left: 0;
-  z-index: 3;
-  min-width: 260px;
-  max-width: 260px;
-  border-right: 2px solid rgba(255,255,255,.25);
-  background: var(--blue);
-}
-.det-col-sig { font-size: 12px; font-weight: 700; }
-.det-col-city { font-size: 10px; font-weight: 400; opacity: .75; margin-top: 1px; }
-.det-col-area { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 2px; margin-top: 3px; }
-.det-col-area.N { background: rgba(255,255,255,.15); }
-.det-col-area.C { background: rgba(255,255,255,.15); }
-.det-col-area.S { background: rgba(255,255,255,.15); }
-
-/* Sticky first column */
-.det-table tbody tr td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: var(--surface);
-  border-right: 1px solid var(--border-med);
-}
-
-/* Row types */
-.det-table tbody tr:hover td { background: #f0f6ff !important; }
-.det-table tbody tr:hover td:first-child { background: #e8f0fe !important; }
-
-.det-row-data td {
-  padding: 5px 10px;
-  border-bottom: 1px solid var(--border);
-  border-right: 1px solid #f3f4f6;
-  vertical-align: middle;
-}
-.det-row-data td:first-child {
-  font-size: 11.5px;
-  color: var(--text-2);
-  padding: 5px 10px 5px 14px;
-}
-.det-row-data .det-cell { text-align: right; font-family: var(--mono); font-size: 11px; color: var(--text); }
-
-.det-row-section td {
-  padding: 7px 10px 5px 14px;
-  background: #f3f4f6 !important;
-  border-bottom: 1px solid var(--border);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.det-table tbody tr.det-row-section:hover td { background: #eceff3 !important; }
-
-.det-row-subtotal td {
-  padding: 6px 10px;
-  background: #f9fafb !important;
-  border-top: 1px solid var(--border-med);
-  border-bottom: 2px solid var(--border-med);
-  font-weight: 600;
-  font-size: 11.5px;
-}
-.det-row-subtotal td:first-child { color: var(--text); }
-.det-row-subtotal .det-cell { text-align: right; font-family: var(--mono); font-size: 11px; color: var(--text); }
-.det-table tbody tr.det-row-subtotal:hover td { background: #f1f3f5 !important; }
-
-.det-row-total td {
-  padding: 8px 10px;
-  background: var(--blue) !important;
-  border-top: 2px solid var(--blue);
-  font-weight: 700;
-  font-size: 12px;
-  color: #fff;
-}
-.det-row-total td:first-child { color: #fff; letter-spacing: .04em; }
-.det-row-total .det-cell { text-align: right; font-family: var(--mono); font-size: 12px; color: #fff; }
-.det-table tbody tr.det-row-total:hover td { background: #1e40af !important; }
-
-/* Min/Max highlights (overridden by hover) */
-.det-cell-max { background: #fef2f2 !important; }
-.det-cell-min { background: #f0fdf4 !important; }
-.det-row-data:hover .det-cell-max,
-.det-row-data:hover .det-cell-min { background: #f0f6ff !important; }
-
-/* Cassa Edile percent sub-label */
-.det-cassa-pct { font-size: 9px; color: var(--text-4); font-family: var(--font); text-align: right; margin-top: 1px; }
-.det-row-total .det-cassa-pct { color: rgba(255,255,255,.6); }
-
-/* Detail empty/loading state */
-.det-empty {
-  padding: 48px 0;
-  text-align: center;
-  color: var(--text-4);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-}
-.det-empty-icon { font-size: 24px; margin-bottom: 8px; opacity: .4; }
-.det-empty-text { font-size: 12px; line-height: 1.6; }
-
-/* ─── PRINT ──────────────────────────────────────────────────────────────── */
-@media print {
-  body { background: #fff; }
-  .header { position: relative; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .tab-bar { display: none !important; }
-  .sidebar, .btn-print, .status-bar, .chips-panel, .search-wrap, .quick-row, .list-box, .sel-count, .area-btns, .lv-row, .bm-row, .mode-toggle { display: none !important; }
-  .shell { display: block; padding-top: 0; }
-  .main { padding: 12px; gap: 10px; }
-  .kpi-card, .insight-box, .chart-panel { box-shadow: none; border: 1px solid #d1d5db; }
-  .print-note { display: block !important; }
-  .kpi-row { grid-template-columns: repeat(4, 1fr); }
-  .det-table-outer { max-height: none; overflow: visible; }
-  .det-table thead tr th { background: var(--blue) !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .det-row-total td { background: var(--blue) !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1e3a8a;--blue-mid:#2c4fa3;--blue-light:#dbeafe;--blue-text:#1e40af;
+  --bg:#ffffff;--surface:#ffffff;--border:#e5e7eb;--border-med:#d1d5db;
+  --text:#111827;--text-2:#374151;--text-3:#6b7280;--text-4:#9ca3af;
+  --nord:#1e3a8a;--nord-bg:#eff6ff;--centro:#065f46;--centro-bg:#ecfdf5;
+  --sud:#92400e;--sud-bg:#fffbeb;--danger:#b91c1c;--success:#15803d;
+  --header-h:88px;--tabbar-h:40px;--side-w:264px;
+  --font:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--blue);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;border-bottom:1px solid rgba(255,255,255,.08)}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-center{display:flex;flex-direction:column;gap:1px}
+.header-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.header-sub{font-size:11px;color:rgba(255,255,255,.55)}
+.header-link{display:inline-block;margin-top:2px;font-size:10px;color:#9ca3af;text-decoration:none;font-weight:500}
+.header-link:hover{color:#d1d5db;text-decoration:underline}
+.header-right{display:flex;align-items:center;gap:8px}
+.header-badge{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.15);padding:4px 7px;border-radius:3px}
+
+/* CAT SWITCH */
+.cat-switch{display:flex;border:1.5px solid rgba(255,255,255,.3);border-radius:5px;overflow:hidden;flex-shrink:0}
+.cat-btn{padding:7px 13px;font-family:var(--font);font-size:12px;font-weight:600;background:transparent;border:none;border-right:1px solid rgba(255,255,255,.18);cursor:pointer;color:rgba(255,255,255,.5);letter-spacing:.02em;transition:all .15s;white-space:nowrap}
+.cat-btn:last-child{border-right:none}
+.cat-btn:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.09)}
+.cat-btn.on{background:rgba(255,255,255,.2);color:#fff}
+
+/* HEADER BTNS */
+.btn-print{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:3px;cursor:pointer;transition:background .15s}
+.btn-print:hover{background:rgba(255,255,255,.14)}
+.btn-print svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn-help{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;font-family:var(--font);font-size:14px;font-weight:700;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:3px;cursor:pointer;transition:background .15s;flex-shrink:0}
+.btn-help:hover{background:rgba(255,255,255,.18)}
+
+/* SHELL */
+.shell{display:flex;padding-top:calc(var(--header-h) + var(--tabbar-h));min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--side-w);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:calc(var(--header-h) + var(--tabbar-h));height:calc(100vh - var(--header-h) - var(--tabbar-h));overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:16px}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sb-section{display:flex;flex-direction:column;gap:6px}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-4)}
+
+/* MODE TOGGLE */
+.mode-toggle{display:flex;border:1px solid var(--border-med);border-radius:3px;overflow:hidden}
+.mode-btn{flex:1;padding:7px 6px;font-family:var(--font);font-size:12px;font-weight:500;background:var(--surface);border:none;cursor:pointer;color:var(--text-3);transition:all .15s;border-right:1px solid var(--border-med)}
+.mode-btn:last-child{border-right:none}
+.mode-btn:hover{background:var(--bg);color:var(--text)}
+.mode-btn.on{background:var(--blue);color:#fff;font-weight:600}
+
+/* AREA BTNS */
+.area-btns{display:flex;gap:5px}
+.area-btn{flex:1;padding:7px 4px;font-family:var(--font);font-size:12px;font-weight:600;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);cursor:pointer;color:var(--text-3);text-align:center;transition:all .15s}
+.area-btn:hover{border-color:var(--blue);color:var(--blue-text)}
+.area-btn.on.N{background:var(--nord-bg);border-color:var(--nord);color:var(--nord)}
+.area-btn.on.C{background:var(--centro-bg);border-color:var(--centro);color:var(--centro)}
+.area-btn.on.S{background:var(--sud-bg);border-color:var(--sud);color:var(--sud)}
+
+/* SEARCH */
+.search-wrap{position:relative}
+.search-input{width:100%;padding:8px 10px;font-family:var(--font);font-size:12px;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);color:var(--text);transition:border-color .15s}
+.search-input::placeholder{color:var(--text-4)}
+.search-input:focus{outline:none;border-color:var(--blue)}
+.search-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border-med);border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:200;overflow:hidden;max-height:280px;overflow-y:auto}
+.drop-group-row{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer;background:var(--blue-light);border-bottom:2px solid #bfdbfe;transition:background .1s}
+.drop-group-row:hover{background:#bfdbfe}
+.drop-group-icon{width:24px;height:24px;border-radius:3px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.drop-group-text{flex:1;min-width:0}
+.drop-group-name{font-size:11px;font-weight:700;color:var(--blue)}
+.drop-group-sub{font-size:10px;color:var(--text-3);margin-top:1px}
+.drop-group-tag{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:var(--blue);color:#fff;padding:2px 6px;border-radius:2px;white-space:nowrap;flex-shrink:0}
+.drop-divider{padding:5px 10px 3px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);background:var(--bg);border-bottom:1px solid var(--border)}
+.drop-item{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.drop-item:last-child{border-bottom:none}
+.drop-item:hover{background:var(--bg)}
+.drop-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.drop-name{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drop-sub{font-size:10px;color:var(--text-4)}
+.drop-val{font-size:11px;font-weight:600;color:var(--text-3);font-family:var(--mono)}
+
+/* QUICK */
+.quick-row{display:flex;gap:5px}
+.quick-btn{flex:1;padding:7px 0;font-family:var(--font);font-size:11px;font-weight:500;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);cursor:pointer;color:var(--text-3);transition:all .15s}
+.quick-btn:hover{background:var(--bg);border-color:var(--text-3);color:var(--text)}
+
+/* LIST */
+.list-box{border:1px solid var(--border);border-radius:3px;overflow-y:auto;max-height:220px;background:var(--surface)}
+.list-box::-webkit-scrollbar{width:4px}
+.list-box::-webkit-scrollbar-thumb{background:var(--border)}
+.list-item{display:flex;align-items:center;gap:8px;padding:7px 9px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.list-item:last-child{border-bottom:none}
+.list-item:hover{background:var(--bg)}
+.list-item.on{background:var(--blue-light)}
+.list-item.on .li-name{color:var(--blue-text);font-weight:600}
+.li-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.li-name{font-size:11.5px;font-weight:400;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.li-sub{font-size:9.5px;color:var(--text-4)}
+.li-val{font-size:11px;font-weight:600;color:var(--text-3);font-family:var(--mono);flex-shrink:0}
+.sel-count{font-size:10px;color:var(--text-4);text-align:right}
+
+/* LEVEL BTNS — flex-wrap per 8 livelli impiegati */
+.lv-row{display:flex;flex-wrap:wrap;gap:4px}
+.lv-btn{padding:6px 0;font-family:var(--font);font-size:11px;font-weight:600;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);cursor:pointer;color:var(--text-3);text-align:center;transition:all .15s;flex:1;min-width:28px}
+.lv-btn:hover{border-color:var(--blue);color:var(--blue-text)}
+.lv-btn.on{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:700}
+
+/* BENCHMARK */
+.bm-row{display:flex;flex-wrap:wrap;gap:5px}
+.bm-btn{padding:5px 9px;font-family:var(--font);font-size:11px;font-weight:500;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);cursor:pointer;color:var(--text-3);transition:all .15s}
+.bm-btn:hover{border-color:var(--text-3);color:var(--text)}
+
+/* MAIN */
+.main{flex:1;min-width:0;padding:24px;display:flex;flex-direction:column;gap:16px}
+
+/* STATUS BAR */
+.status-bar{padding:10px 14px;border-radius:3px;font-size:12px;display:flex;align-items:center;gap:8px;border-left:3px solid;line-height:1.5}
+.status-bar button{vertical-align:baseline}
+.status-bar.loading{background:var(--blue-light);color:var(--blue-text);border-color:var(--blue)}
+.status-bar.error{background:#fef2f2;color:var(--danger);border-color:var(--danger)}
+.status-bar.ok{display:none}
+.spinner{width:13px;height:13px;border:2px solid rgba(30,58,138,.25);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* INSIGHT */
+.insight-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:0 3px 3px 0;padding:14px 16px}
+.insight-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-text);margin-bottom:5px}
+.insight-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4}
+.insight-sub{margin-top:4px;font-size:12px;color:var(--text-3);line-height:1.5}
+.insight-sub strong{color:var(--text-2);font-weight:600}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi-card{background:var(--surface);border:none;border-bottom:2px solid var(--border-med);border-radius:3px;padding:14px 15px;transition:border-bottom-color .15s}
+.kpi-card.primary{border-bottom-color:var(--blue)}
+.kpi-card.up{border-bottom-color:var(--danger)}
+.kpi-card.down{border-bottom-color:var(--success)}
+.kpi-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-4);margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1;font-family:var(--mono)}
+.kpi-card.primary .kpi-value{color:var(--blue)}
+.kpi-card.up .kpi-value{color:var(--danger)}
+.kpi-card.down .kpi-value{color:var(--success)}
+.kpi-card:not(.primary):not(.up):not(.down) .kpi-value{color:var(--text)}
+.kpi-sub{margin-top:6px;font-size:10px;color:var(--text-4);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* CHIPS */
+.chips-panel{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;min-height:42px;align-items:center}
+.chips-empty{font-size:11px;color:var(--text-4);font-style:italic}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:2px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:opacity .12s}
+.chip:hover{opacity:.75}
+.chip .x{font-size:12px;line-height:1;opacity:.6;margin-left:1px}
+.chip.N{background:var(--nord-bg);color:var(--nord);border-color:#bfdbfe}
+.chip.C{background:var(--centro-bg);color:var(--centro);border-color:#a7f3d0}
+.chip.S{background:var(--sud-bg);color:var(--sud);border-color:#fde68a}
+
+/* CHART */
+.chart-panel{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:16px}
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:12px}
+.chart-title{font-size:13px;font-weight:600;color:var(--text)}
+.chart-meta{font-size:11px;color:var(--text-4);margin-top:2px}
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3)}
+.legend-swatch{width:10px;height:10px;border-radius:1px;flex-shrink:0}
+.legend-line{width:16px;height:2px;flex-shrink:0;background:currentColor;position:relative}
+.legend-line::before,.legend-line::after{content:'';position:absolute;top:-2px;width:4px;height:2px;background:var(--surface)}
+.legend-line::before{left:3px}
+.legend-line::after{right:3px}
+.chart-container{position:relative;width:100%}
+.print-note{display:none;font-size:10px;color:var(--text-4);margin-top:4px}
+.state-empty{padding:40px 0;text-align:center;color:var(--text-4)}
+.state-empty-icon{font-size:28px;margin-bottom:10px;opacity:.4}
+.state-empty-text{font-size:12px;line-height:1.6}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.shell{flex-direction:column}.sidebar{position:static;width:100%;height:auto}.header-sub{display:none}}
+@media(max-width:540px){.kpi-row{grid-template-columns:1fr 1fr}.main{padding:12px}}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:500;align-items:flex-start;justify-content:center;padding:80px 16px 24px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:4px;border:1px solid var(--border);width:100%;max-width:680px;box-shadow:0 24px 60px rgba(15,23,42,.18);overflow:hidden;animation:modalIn .18s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.modal-header{background:var(--blue);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.modal-header-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.modal-header-close{width:28px;height:28px;border-radius:3px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s}
+.modal-header-close:hover{background:rgba(255,255,255,.22)}
+.modal-section{padding:18px 20px;border-bottom:1px solid var(--border)}
+.modal-section:last-child{border-bottom:none}
+.modal-section-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-text);margin-bottom:10px}
+.modal-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.modal-row:last-child{margin-bottom:0}
+.modal-tag{flex-shrink:0;min-width:130px;font-size:11px;font-weight:600;color:var(--text-2);padding-top:1px}
+.modal-desc{font-size:12px;color:var(--text-3);line-height:1.55}
+.modal-desc strong{color:var(--text-2);font-weight:600}
+.modal-note{margin-top:10px;padding:10px 12px;background:var(--blue-light);border-left:3px solid var(--blue);border-radius:0 3px 3px 0;font-size:11px;color:var(--blue-text);line-height:1.55}
+
+/* TAB BAR */
+.tab-bar{position:fixed;top:var(--header-h);left:0;right:0;height:var(--tabbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:99}
+.tab-btn{display:inline-flex;align-items:center;gap:6px;padding:0 18px;height:100%;font-family:var(--font);font-size:12px;font-weight:500;color:var(--text-3);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-bar-sep{flex:1}
+.tab-bar-info{font-size:10px;color:var(--text-4)}
+
+/* VIEWS */
+.view-section{display:none}
+.view-section.active{display:block}
+
+/* DETAIL TABLE */
+.det-table-outer{overflow:auto;max-height:calc(100vh - var(--header-h) - var(--tabbar-h) - 130px);border:1px solid var(--border);border-radius:3px}
+.det-table-outer::-webkit-scrollbar{width:6px;height:6px}
+.det-table-outer::-webkit-scrollbar-thumb{background:var(--border-med);border-radius:3px}
+.det-table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
+.det-table thead tr th{position:sticky;top:0;z-index:2;background:var(--blue);color:#fff;font-weight:600;text-align:center;padding:8px 10px 7px;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap;min-width:108px}
+.det-table thead tr th:first-child{text-align:left;position:sticky;left:0;z-index:3;min-width:260px;max-width:260px;border-right:2px solid rgba(255,255,255,.25);background:var(--blue)}
+.det-col-sig{font-size:12px;font-weight:700}
+.det-col-city{font-size:10px;font-weight:400;opacity:.75;margin-top:1px}
+.det-col-area{display:inline-block;font-size:9px;font-weight:600;padding:1px 5px;border-radius:2px;margin-top:3px;background:rgba(255,255,255,.15)}
+.det-table tbody tr td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);border-right:1px solid var(--border-med)}
+.det-table tbody tr:hover td{background:#f0f6ff!important}
+.det-table tbody tr:hover td:first-child{background:#e8f0fe!important}
+.det-row-data td{padding:5px 10px;border-bottom:1px solid var(--border);border-right:1px solid #f3f4f6;vertical-align:middle}
+.det-row-data td:first-child{font-size:11.5px;color:var(--text-2);padding:5px 10px 5px 14px}
+.det-row-data .det-cell{text-align:right;font-family:var(--mono);font-size:11px;color:var(--text)}
+.det-row-section td{padding:7px 10px 5px 14px;background:#f3f4f6!important;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.det-table tbody tr.det-row-section:hover td{background:#eceff3!important}
+.det-row-subtotal td{padding:6px 10px;background:#f9fafb!important;border-top:1px solid var(--border-med);border-bottom:2px solid var(--border-med);font-weight:600;font-size:11.5px}
+.det-row-subtotal td:first-child{color:var(--text)}
+.det-row-subtotal .det-cell{text-align:right;font-family:var(--mono);font-size:11px;color:var(--text)}
+.det-table tbody tr.det-row-subtotal:hover td{background:#f1f3f5!important}
+.det-row-total td{padding:8px 10px;background:var(--blue)!important;border-top:2px solid var(--blue);font-weight:700;font-size:12px;color:#fff}
+.det-row-total td:first-child{color:#fff;letter-spacing:.04em}
+.det-row-total .det-cell{text-align:right;font-family:var(--mono);font-size:12px;color:#fff}
+.det-table tbody tr.det-row-total:hover td{background:#1e40af!important}
+.det-cell-max{background:#fef2f2!important}
+.det-cell-min{background:#f0fdf4!important}
+.det-row-data:hover .det-cell-max,.det-row-data:hover .det-cell-min{background:#f0f6ff!important}
+.det-cassa-pct{font-size:9px;color:var(--text-4);font-family:var(--font);text-align:right;margin-top:1px}
+.det-row-total .det-cassa-pct{color:rgba(255,255,255,.6)}
+.det-empty{padding:48px 0;text-align:center;color:var(--text-4);border:1px solid var(--border);border-radius:3px}
+.det-empty-icon{font-size:24px;margin-bottom:8px;opacity:.4}
+.det-empty-text{font-size:12px;line-height:1.6}
+
+/* PRINT */
+@media print{
+  body{background:#fff}
+  .header{position:relative;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .tab-bar,.cat-switch,.sidebar,.btn-print,.status-bar,.chips-panel,.search-wrap,.quick-row,.list-box,.sel-count,.area-btns,.lv-row,.bm-row,.mode-toggle{display:none!important}
+  .shell{display:block;padding-top:0}
+  .main{padding:12px;gap:10px}
+  .kpi-row{grid-template-columns:repeat(4,1fr)}
+  .print-note{display:block!important}
+  .det-table-outer{max-height:none;overflow:visible}
+  .det-table thead tr th,.det-row-total td{background:var(--blue)!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
 </style>
 </head>
 <body>
-
-<!-- ════════════════════════════════════════════════════════════════
-     CONFIGURAZIONE — sostituisci con il link CSV del tuo Google Sheet
-     ════════════════════════════════════════════════════════════════ -->
 <script>
-  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=1892027375&single=true&output=csv";
-  // Foglio DATI: già configurato
-
-  const DETTAGLI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=406350821&single=true&output=csv";
-  // Foglio DETTAGLI: pubblica il foglio "Dettagli" come CSV e incolla qui il link
-  // Esempio: "https://docs.google.com/spreadsheets/d/e/XXXX/pub?gid=YYYY&single=true&output=csv"
-  // Il foglio Dettagli NON deve avere riga di intestazione
+const SHEET_CSV_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=1892027375&single=true&output=csv";
+const DETTAGLI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=406350821&single=true&output=csv";
+const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=2047671546&single=true&output=csv";
 </script>
-<!-- ═══════════════════════════════════════════════════════════════ -->
 
-<!-- HEADER -->
 <header class="header">
   <div class="header-left">
-    <span class="header-title">Costo medio orario OPERAI 05/25—DD23 26/03/26. </span>
-    <span class="header-sub">Ministero del Lavoro · CCNL Edilizia · Elaborazione ANCE Piemonte VdA</span>
-    
-    <a class="header-link" 
-       href="https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai" 
-       target="_blank" 
-       rel="noopener noreferrer">
-       📊 Link Tab. ufficiali costo lavoro operai
-    </a>
+    <div class="cat-switch">
+      <button class="cat-btn on" data-cat="operai"    onclick="switchCat('operai')">&#9874; Operai</button>
+      <button class="cat-btn"    data-cat="impiegati" onclick="switchCat('impiegati')">&#128188; Impiegati</button>
+    </div>
+    <div class="header-center">
+      <span class="header-title" id="header-title">Costo medio orario OPERAI 05/25 — DD23 26/03/26</span>
+      <span class="header-sub">Ministero del Lavoro &middot; CCNL Edilizia &middot; Elaborazione ANCE Piemonte VdA</span>
+      <a class="header-link" id="header-link" href="https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai" target="_blank" rel="noopener noreferrer">&#128202; Link Tab. ufficiali costo lavoro operai</a>
+    </div>
   </div>
-
   <div class="header-right">
     <span class="header-badge">Dashboard comparativa</span>
-    <button class="btn-help" onclick="openHelp()" title="Guida all'uso" style="background:#fff; color:var(--blue); border-color:#fff">?</button>
+    <button class="btn-help" onclick="openHelp()" style="background:#fff;color:var(--blue);border-color:#fff">?</button>
     <button class="btn-print" onclick="doPrint()">
       <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Stampa / PDF
@@ -924,22 +300,16 @@ body {
   </div>
 </header>
 
-<!-- TAB BAR -->
 <nav class="tab-bar">
   <button class="tab-btn on" data-view="agg" onclick="switchView('agg')">Costi aggregati</button>
-  <button class="tab-btn" data-view="det" onclick="switchView('det')">Analisi per voce</button>
+  <button class="tab-btn"    data-view="det" onclick="switchView('det')">Analisi per voce</button>
   <div class="tab-bar-sep"></div>
   <span class="tab-bar-info" id="tab-info"></span>
 </nav>
 
-<!-- VIEW: COSTI AGGREGATI -->
 <div id="view-agg" class="view-section active">
-
 <div class="shell">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-
     <div class="sb-section">
       <div class="sb-label">Vista</div>
       <div class="mode-toggle" id="mseg">
@@ -947,7 +317,6 @@ body {
         <button class="mode-btn"    onclick="setMode('regioni')">Regioni</button>
       </div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Area geografica</div>
       <div class="area-btns">
@@ -956,141 +325,92 @@ body {
         <button class="area-btn S"    data-a="S" onclick="toggleArea(this)">Sud</button>
       </div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Cerca e aggiungi</div>
       <div class="search-wrap">
-        <input class="search-input" id="gsearch"
-          placeholder="Regione (es. Piemonte) o città…"
-          oninput="onSearch()"
-          onfocus="onSearch()"
+        <input class="search-input" id="gsearch" placeholder="Regione o citt&#224;&#8230;"
+          oninput="onSearch()" onfocus="onSearch()"
           onblur="setTimeout(()=>{document.getElementById('sdrop').style.display='none'},220)">
         <div class="search-drop" id="sdrop" style="display:none"></div>
       </div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Selezione rapida</div>
       <div class="quick-row">
         <button class="quick-btn" onclick="selAll()">Tutte</button>
         <button class="quick-btn" onclick="selNone()">Nessuna</button>
-        <button class="quick-btn" onclick="selMetro()">Città metro</button>
+        <button class="quick-btn" onclick="selMetro()">Citt&#224; metro</button>
       </div>
     </div>
-
-    <div class="sb-section" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:7px">
+    <div class="sb-section" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:6px">
       <div class="sb-label">Elenco</div>
       <div class="list-box" id="loc-list"></div>
       <div class="sel-count" id="sel-count"></div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Livello contrattuale</div>
-      <div class="lv-row">
-        <button class="lv-btn on" data-lv="lv1" onclick="setLv(this)">1°</button>
-        <button class="lv-btn"    data-lv="lv2" onclick="setLv(this)">2°</button>
-        <button class="lv-btn"    data-lv="lv3" onclick="setLv(this)">3°</button>
-        <button class="lv-btn"    data-lv="lv4" onclick="setLv(this)">4°</button>
-      </div>
+      <div class="lv-row" id="lv-row"></div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Benchmark di riferimento</div>
       <div class="bm-row" id="bm-row"></div>
     </div>
-
   </aside>
-
-  <!-- MAIN -->
   <main class="main">
-
-    <div class="status-bar loading" id="statusbar">
-      <div class="spinner"></div>
-      <span id="statusmsg">Caricamento dati da Google Sheets…</span>
-    </div>
-
+    <div class="status-bar loading" id="statusbar"><div class="spinner"></div><span id="statusmsg">Caricamento dati&#8230;</span></div>
     <div class="insight-box" id="insight-box">
       <div class="insight-tag">Lettura automatica</div>
       <div class="insight-title">In attesa dei dati</div>
-      <div class="insight-sub">La dashboard si connetterà a Google Sheets e calcolerà automaticamente media, scostamenti e confronti territoriali.</div>
+      <div class="insight-sub">La dashboard si connetterà a Google Sheets e calcolerà media, scostamenti e confronti territoriali.</div>
     </div>
-
     <div class="kpi-row" id="kpi-row">
-      <div class="kpi-card"><div class="kpi-label">Media selezione</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">In attesa dati</div></div>
-      <div class="kpi-card"><div class="kpi-label">vs. media nazionale</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">Minimo</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">Massimo</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Media selezione</div><div class="kpi-value" style="color:var(--text-4)">&#8212;</div><div class="kpi-sub">In attesa dati</div></div>
+      <div class="kpi-card"><div class="kpi-label">vs. media nazionale</div><div class="kpi-value" style="color:var(--text-4)">&#8212;</div><div class="kpi-sub">&#8212;</div></div>
+      <div class="kpi-card"><div class="kpi-label">Minimo</div><div class="kpi-value" style="color:var(--text-4)">&#8212;</div><div class="kpi-sub">&#8212;</div></div>
+      <div class="kpi-card"><div class="kpi-label">Massimo</div><div class="kpi-value" style="color:var(--text-4)">&#8212;</div><div class="kpi-sub">&#8212;</div></div>
     </div>
-
-    <div class="chips-panel" id="chips">
-      <span class="chips-empty">Nessun territorio selezionato</span>
-    </div>
-
+    <div class="chips-panel" id="chips"><span class="chips-empty">Nessun territorio selezionato</span></div>
     <div class="chart-panel">
-      <div class="chart-header">
-        <div>
-          <div class="chart-title">Confronto territoriale</div>
-          <div class="chart-meta" id="chart-meta">Seleziona province o regioni per avviare il confronto</div>
-        </div>
-      </div>
+      <div class="chart-header"><div><div class="chart-title">Confronto territoriale</div><div class="chart-meta" id="chart-meta">Seleziona province o regioni per avviare il confronto</div></div></div>
       <div class="legend-row" id="legend-row"></div>
       <div class="chart-container" id="chart-container">
-        <div class="state-empty">
-          <div class="state-empty-icon">▤</div>
-          <div class="state-empty-text">Usa i filtri a sinistra o cerca una provincia<br>per costruire il grafico comparativo</div>
-        </div>
+        <div class="state-empty"><div class="state-empty-icon">&#9636;</div><div class="state-empty-text">Usa i filtri a sinistra o cerca una provincia</div></div>
       </div>
       <div class="print-note" id="print-note"></div>
     </div>
-
   </main>
-</div><!-- /.shell -->
-</div><!-- /#view-agg -->
+</div>
+</div>
 
-<!-- VIEW: ANALISI PER VOCE -->
 <div id="view-det" class="view-section">
 <div class="shell">
-
-  <!-- SIDEBAR DETTAGLIO -->
   <aside class="sidebar" id="det-sidebar">
-
     <div class="sb-section">
       <div class="sb-label">Cerca e aggiungi</div>
       <div class="search-wrap">
-        <input class="search-input" id="det-search"
-          placeholder="Regione (es. Piemonte) o città…"
-          oninput="detOnSearch()"
-          onfocus="detOnSearch()"
+        <input class="search-input" id="det-search" placeholder="Regione o citt&#224;&#8230;"
+          oninput="detOnSearch()" onfocus="detOnSearch()"
           onblur="setTimeout(()=>{document.getElementById('det-drop').style.display='none'},220)">
         <div class="search-drop" id="det-drop" style="display:none"></div>
       </div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Selezione rapida</div>
       <div class="quick-row">
         <button class="quick-btn" onclick="detSelAll()">Tutte</button>
         <button class="quick-btn" onclick="detSelNone()">Nessuna</button>
-        <button class="quick-btn" onclick="detSelMetro()">Città metro</button>
+        <button class="quick-btn" onclick="detSelMetro()">Citt&#224; metro</button>
       </div>
     </div>
-
-    <div class="sb-section" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:7px">
+    <div class="sb-section" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:6px">
       <div class="sb-label">Province disponibili</div>
       <div class="list-box" id="det-list"></div>
       <div class="sel-count" id="det-count"></div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label">Livello contrattuale</div>
-      <div class="lv-row" id="det-lv-row">
-        <button class="lv-btn on" data-lv="lv1" onclick="detSetLv(this)">1°</button>
-        <button class="lv-btn"    data-lv="lv2" onclick="detSetLv(this)">2°</button>
-        <button class="lv-btn"    data-lv="lv3" onclick="detSetLv(this)">3°</button>
-        <button class="lv-btn"    data-lv="lv4" onclick="detSetLv(this)">4°</button>
-      </div>
+      <div class="lv-row" id="det-lv-row"></div>
     </div>
-
     <div class="sb-section">
       <div class="sb-label" style="margin-bottom:4px">Legenda colori</div>
       <div style="display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--text-3)">
@@ -1098,1123 +418,642 @@ body {
         <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:2px;flex-shrink:0"></div>Valore minimo per voce</div>
       </div>
     </div>
-
   </aside>
-
-  <!-- MAIN DETTAGLIO -->
   <main class="main">
-
-    <div class="status-bar loading" id="det-statusbar">
-      <div class="spinner"></div>
-      <span id="det-statusmsg">In attesa — passa a questa sezione per caricare i dati</span>
-    </div>
-
-    <div class="chips-panel" id="det-chips">
-      <span class="chips-empty">Nessuna provincia selezionata — usa la ricerca a sinistra</span>
-    </div>
-
+    <div class="status-bar loading" id="det-statusbar"><div class="spinner"></div><span id="det-statusmsg">In attesa &#8212; passa a questa sezione per caricare i dati</span></div>
+    <div class="chips-panel" id="det-chips"><span class="chips-empty">Nessuna provincia selezionata</span></div>
     <div id="det-content">
-      <div class="det-empty">
-        <div class="det-empty-icon">▤</div>
-        <div class="det-empty-text">Carica il foglio Dettagli e seleziona province o regioni<br>per visualizzare il confronto per voce di costo</div>
-      </div>
+      <div class="det-empty"><div class="det-empty-icon">&#9636;</div><div class="det-empty-text">Seleziona province o regioni per visualizzare il confronto per voce di costo</div></div>
     </div>
-
   </main>
+</div>
+</div>
 
-</div><!-- /.shell -->
-</div><!-- /#view-det -->
-
-<!-- MODAL ISTRUZIONI -->
 <div class="modal-overlay" id="help-modal" onclick="handleModalClick(event)">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-header-title">Guida alla dashboard — Costo medio orario operai edili</div>
-      <button class="modal-header-close" onclick="closeHelp()">✕</button>
+      <div class="modal-header-title">Guida alla dashboard &#8212; Costo medio orario CCNL Edilizia</div>
+      <button class="modal-header-close" onclick="closeHelp()">&#10005;</button>
     </div>
     <div class="modal-body">
-
       <div class="modal-section">
-        <div class="modal-section-title">Cos'è questa dashboard</div>
-        <div class="modal-row">
-          <div class="modal-tag">Fonte dati</div>
-          <div class="modal-desc">
-            Tabelle ufficiali del <strong>Ministero del Lavoro e delle Politiche Sociali</strong> — Direzione Generale dei Rapporti di Lavoro — aggiornate a <strong>Maggio 2025</strong> — Decreto Direttoriale n. 23 del 26 marzo 2026. 
-            Dati relativi agli operai delle imprese edili ed affini (CCNL Edilizia).
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Elaborazione</div>
-          <div class="modal-desc"><strong>ANCE Piemonte Valle d'Aosta S.E.&O.</strong></div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Copertura</div>
-          <div class="modal-desc">
-            102 province italiane, 4 livelli contrattuali (1°–4°), con dettaglio di tutte le voci che compongono il costo orario.
-          </div>
-        </div>
+        <div class="modal-section-title">Cos&#39;&#232; questa dashboard</div>
+        <div class="modal-row"><div class="modal-tag">Fonte dati</div><div class="modal-desc">Tabelle ufficiali del <strong>Ministero del Lavoro</strong> &#8212; Decreto Direttoriale n.&#160;23 del 26&#160;marzo&#160;2026. Operai e impiegati delle imprese edili (CCNL Edilizia).</div></div>
+        <div class="modal-row"><div class="modal-tag">Switch categoria</div><div class="modal-desc">Il pulsante in alto a sinistra (<strong>Operai / Impiegati</strong>) cambia dataset. Operai: 4 livelli (1&#176;&#8211;4&#176;). Impiegati: 8 livelli (1&#176;&#8211;7&#176; + Quadri). I dati si caricano al primo accesso.</div></div>
+        <div class="modal-row"><div class="modal-tag">Elaborazione</div><div class="modal-desc"><strong>ANCE Piemonte Valle d&#39;Aosta S.E.&amp;O.</strong></div></div>
       </div>
-
       <div class="modal-section">
-        <div class="modal-section-title">Tab 1 — Costi aggregati</div>
-        <div class="modal-row">
-          <div class="modal-tag">Province / Regioni</div>
-          <div class="modal-desc">
-            Alterna la vista tra singole province e medie regionali (calcolate come media aritmetica delle province della regione).
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Filtro area</div>
-          <div class="modal-desc">
-            Seleziona <strong>Nord</strong>, <strong>Centro</strong> o <strong>Sud e Isole</strong> per caricare tutte le province dell'area. I pulsanti sono cumulabili.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Cerca e aggiungi</div>
-          <div class="modal-desc">
-            Digita il nome di una <strong>regione</strong> (es. "Piemonte") per aggiungere tutte le sue province in un click. 
-            Digita il nome di una <strong>città</strong> (es. "Torino") per aggiungerla singolarmente. 
-            Le selezioni appaiono come chip colorati sopra il grafico — clic sulla × per rimuovere.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Livelli contrattuali</div>
-          <div class="modal-desc">
-            <strong>1°</strong> operaio comune · <strong>2°</strong> qualificato · <strong>3°</strong> specializzato · <strong>4°</strong> specializzato superiore. 
-            Il costo include tutti gli oneri a carico del datore di lavoro.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Benchmark</div>
-          <div class="modal-desc">
-            Linee tratteggiate sul grafico: riferimento nazionale, Nord, Centro o Sud. 
-            Attivabili singolarmente nella sezione "Benchmark di riferimento" nella sidebar.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Colori barre</div>
-          <div class="modal-desc">
-            <span style="font-weight:600;color:#1e3a8a">Blu = Nord</span> · 
-            <span style="font-weight:600;color:#065f46">Verde = Centro</span> · 
-            <span style="font-weight:600;color:#92400e">Ambra = Sud e Isole</span>. 
-            Le barre sono ordinate dal costo più alto al più basso.
-          </div>
-        </div>
+        <div class="modal-section-title">Tab 1 &#8212; Costi aggregati</div>
+        <div class="modal-row"><div class="modal-tag">Province / Regioni</div><div class="modal-desc">Alterna tra singole province e medie regionali (media aritmetica delle province).</div></div>
+        <div class="modal-row"><div class="modal-tag">Livelli Operai</div><div class="modal-desc"><strong>1&#176;</strong> comune &middot; <strong>2&#176;</strong> qualificato &middot; <strong>3&#176;</strong> specializzato &middot; <strong>4&#176;</strong> specializzato superiore.</div></div>
+        <div class="modal-row"><div class="modal-tag">Livelli Impiegati</div><div class="modal-desc"><strong>1&#176;&#8211;7&#176;</strong> livelli CCNL impiegati edili &middot; <strong>Q</strong> = Quadri. Tutti gli oneri a carico del datore di lavoro.</div></div>
+        <div class="modal-row"><div class="modal-tag">Benchmark</div><div class="modal-desc">Linee tratteggiate: media nazionale, Nord, Centro, Sud. Attivabili nella sidebar.</div></div>
       </div>
-
       <div class="modal-section">
-        <div class="modal-section-title">Tab 2 — Analisi per voce</div>
-        <div class="modal-row">
-          <div class="modal-tag">Come si usa</div>
-          <div class="modal-desc">
-            Seleziona le province da confrontare con la stessa logica della tab 1. 
-            Ogni provincia diventa una colonna; le voci di costo sono le righe fisse a sinistra. 
-            La tabella scorre orizzontalmente.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Struttura righe</div>
-          <div class="modal-desc">
-            <strong>Sezione A</strong> — elementi retributivi diretti (minimo, contingenza, ITS…) · 
-            <strong>Sezione B</strong> — oneri aggiuntivi (festività, riposi, Cassa Edile GNF…) · 
-            <strong>Sezione C</strong> — oneri previdenziali (INPS, INAIL, Cassa Edile). 
-            Seguono: mensa, TFR, oneri vari, Sanedil, costo totale.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Colori celle</div>
-          <div class="modal-desc">
-            Per ogni voce il valore massimo è evidenziato in 
-            <span style="background:#fef2f2;color:#b91c1c;padding:1px 5px;border-radius:2px;font-weight:600">rosso chiaro</span> 
-            e il valore minimo in 
-            <span style="background:#f0fdf4;color:#15803d;padding:1px 5px;border-radius:2px;font-weight:600">verde chiaro</span> — 
-            attivi solo quando sono selezionate almeno 2 province.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Contributi Cassa Edile</div>
-          <div class="modal-desc">
-            La percentuale varia per Cassa Edile territoriale. 
-            Sotto ogni valore è indicata la percentuale specifica applicata in quella provincia.
-          </div>
-        </div>
-        <div class="modal-row">
-          <div class="modal-tag">Riga finale</div>
-          <div class="modal-desc">
-            La riga <strong>COSTO MEDIO ORARIO</strong> (sfondo blu) è il dato sintetico totale: 
-            somma di tutti gli oneri a carico del datore di lavoro per ora lavorata.
-          </div>
-        </div>
+        <div class="modal-section-title">Tab 2 &#8212; Analisi per voce</div>
+        <div class="modal-row"><div class="modal-tag">Struttura</div><div class="modal-desc"><strong>Sezione A</strong> retribuzione diretta &middot; <strong>B</strong> oneri aggiuntivi &middot; <strong>C</strong> oneri previdenziali. La riga finale in blu &#232; il <strong>COSTO MEDIO ORARIO</strong> totale.</div></div>
+        <div class="modal-row"><div class="modal-tag">Colori celle</div><div class="modal-desc">Massimo in <span style="background:#fef2f2;color:#b91c1c;padding:1px 5px;border-radius:2px;font-weight:600">rosso</span> &middot; minimo in <span style="background:#f0fdf4;color:#15803d;padding:1px 5px;border-radius:2px;font-weight:600">verde</span> (attivi con &#8805;2 province).</div></div>
       </div>
-
       <div class="modal-section">
         <div class="modal-section-title">Aggiornamento dati</div>
-        <div class="modal-row">
-          <div class="modal-tag">Come aggiornare</div>
-          <div class="modal-desc">
-            Modificare direttamente i fogli Google — <strong>Dati</strong> per i costi aggregati, 
-            <strong>Dettagli</strong> per l'analisi per voce. 
-            La dashboard rilegge i dati ad ogni apertura senza toccare il file HTML.
-          </div>
-        </div>
-
-        <div class="modal-note">
-          Dashboard elaborata da <strong>ANCE Piemonte Valle d'Aosta</strong> · 
-          Fonte: Ministero del Lavoro · Maggio 2025 - Decreto Direttoriale n. 23 del 26 marzo 2026
-        </div>
+        <div class="modal-row"><div class="modal-tag">Fogli Google</div><div class="modal-desc"><strong>Dati</strong> (aggregato operai) &middot; <strong>Dettagli</strong> (voci operai) &middot; <strong>DettagliImp</strong> (voci + aggregato impiegati). Nessuna modifica al file HTML.</div></div>
+        <div class="modal-note">Dashboard elaborata da <strong>ANCE Piemonte Valle d&#39;Aosta</strong> &middot; Fonte: Ministero del Lavoro &middot; Maggio 2025 &#8212; D.D. n.&#160;23 del 26&#160;marzo&#160;2026</div>
       </div>
-
     </div>
   </div>
 </div>
-
 <script>
-/* ─── CONFIG ─────────────────────────────────────────────────────────────── */
-const AREA_COL = { N:'#1e3a8a', C:'#065f46', S:'#92400e' };
-const AREA_BG  = { N:'#eff6ff', C:'#ecfdf5', S:'#fffbeb' };
-const AREA_FILL= { N:'rgba(30,58,138,.75)', C:'rgba(6,95,70,.72)', S:'rgba(146,64,14,.72)' };
-const AREA_NAME= { N:'Nord', C:'Centro', S:'Sud e Isole' };
-
-const LV_LABELS = ['1° livello','2° livello','3° livello','4° livello'];
-const LVS = ['lv1','lv2','lv3','lv4'];
-
+/* ═══ COSTANTI ════════════════════════════════════════════════════════════ */
+const AREA_COL  = {N:'#1e3a8a',C:'#065f46',S:'#92400e'};
+const AREA_BG   = {N:'#eff6ff',C:'#ecfdf5',S:'#fffbeb'};
+const AREA_FILL = {N:'rgba(30,58,138,.75)',C:'rgba(6,95,70,.72)',S:'rgba(146,64,14,.72)'};
+const AREA_NAME = {N:'Nord',C:'Centro',S:'Sud e Isole'};
 const BMS = [
-  { k:'naz', label:'Media nazionale',  col:'#374151', dash:[6,3] },
-  { k:'N',   label:'Media Nord',       col:'#1e3a8a', dash:[4,4] },
-  { k:'C',   label:'Media Centro',     col:'#065f46', dash:[4,4] },
-  { k:'S',   label:'Media Sud',        col:'#92400e', dash:[4,4] },
+  {k:'naz',label:'Media nazionale', col:'#374151',dash:[6,3]},
+  {k:'N',  label:'Media Nord',      col:'#1e3a8a',dash:[4,4]},
+  {k:'C',  label:'Media Centro',    col:'#065f46',dash:[4,4]},
+  {k:'S',  label:'Media Sud',       col:'#92400e',dash:[4,4]},
+];
+const OP_LVS    = ['lv1','lv2','lv3','lv4'];
+const OP_LV_LBL = ['1° livello','2° livello','3° livello','4° livello'];
+const OP_LV_SHT = ['1°','2°','3°','4°'];
+const IMP_LVS    = ['lv1','lv2','lv3','lv4','lv5','lv6','lv7','lv8'];
+const IMP_LV_LBL = ['1° livello','2° livello','3° livello','4° livello','5° livello','6° livello','7° livello','Quadri'];
+const IMP_LV_SHT = ['1°','2°','3°','4°','5°','6°','7°','Q'];
+
+/* ─── DET_ROWS OPERAI ─────────────────────────────────────────────────── */
+const OP_DET_ROWS = [
+  {key:'hdr_A',   label:'A — Elementi retributivi diretti',                          type:'section'},
+  {key:'minimo',  label:'Minimo',                                                   type:'data'},
+  {key:'conting', label:'Ind. contingenza',                                         type:'data'},
+  {key:'edr',     label:'E.D.R. - ex prot.23/7/1993',                              type:'data'},
+  {key:'evr',     label:'Elemento Variabile della Retribuzione(1)',                 type:'data'},
+  {key:'its',     label:'Indennità di settore ITS',                                 type:'data'},
+  {key:'tot_a',   label:'TOTALE "A"',                                               type:'subtotal'},
+  {key:'hdr_B',   label:'B — Oneri aggiuntivi',                                    type:'section'},
+  {key:'fest12',  label:'Retribuzione 12 festività',                                type:'data'},
+  {key:'nov4',    label:'Retribuzione 4 novembre',                                  type:'data'},
+  {key:'riposi',  label:'Riposi annui (4,95%)',                                     type:'data'},
+  {key:'gnf',     label:'Accantonamento Cassa Edile per GNF (18,50%)',             type:'data'},
+  {key:'trasp',   label:'Indennità di trasporto',                                   type:'data'},
+  {key:'assemb',  label:'Retribuzione assemblee, diritto allo studio e formazione', type:'data'},
+  {key:'mal',     label:'Accantonamento Cassa Edile per malattia e infortunio',    type:'data'},
+  {key:'finc',    label:"Fondo incentivo all'occupazione (0,10%)",                  type:'data'},
+  {key:'tot_b',   label:'TOTALE "B"',                                               type:'subtotal'},
+  {key:'hdr_C',   label:'C — Oneri previdenziali e assistenziali',                 type:'section'},
+  {key:'inps',    label:'Inps (34,28%) — 15-50 dipendenti',                        type:'data'},
+  {key:'inail',   label:'Inail (11,00%)',                                           type:'data'},
+  {key:'cassa',   label:'Contributi Cassa Edile',                                   type:'data',cassaNote:true},
+  {key:'magg',    label:'Maggiorazione contributiva Inps/Inail su Cassa Edile',    type:'data'},
+  {key:'tot_c',   label:'TOTALE "C"',                                               type:'subtotal'},
+  {key:'mensa',   label:'Indennità sostitutiva di mensa',                           type:'data'},
+  {key:'tfr',     label:'Trattamento fine rapporto',                                type:'data'},
+  {key:'tfr_riv', label:'Rivalutazione T.F.R. (2,320017%)',                         type:'data'},
+  {key:'oneri',   label:'Oneri vari: trasferte, prev. complementare, disagio 50%', type:'data'},
+  {key:'contcontr',label:'Contributo contrattuale previdenza complementare',        type:'data'},
+  {key:'sanedil', label:'Fondo Sanitario (Sanedil)',                                type:'data'},
+  {key:'cmo',     label:'COSTO MEDIO ORARIO',                                      type:'total'},
 ];
 
-/* ─── STATE ──────────────────────────────────────────────────────────────── */
-let RAW       = [];
-let mode      = 'province';
-let lv        = 'lv1';
-let sel       = new Set();
-let aFilter   = new Set(['N']);
-let activeBms = new Set(['naz']);
-let chart     = null;
+/* ─── DET_ROWS IMPIEGATI ──────────────────────────────────────────────── */
+const IMP_DET_ROWS = [
+  {key:'hdr_A',   label:'A — Elementi retributivi mensili',                         type:'section'},
+  {key:'minimo',  label:'Minimo',                                                   type:'data'},
+  {key:'scatti',  label:'Scatti biennali (2 scatti)',                               type:'data'},
+  {key:'conting', label:'Ind. contingenza',                                         type:'data'},
+  {key:'edr',     label:'E.D.R. - ex prot.23/7/1993',                              type:'data'},
+  {key:'funz',    label:'Indennità di funzione',                                    type:'data'},
+  {key:'evr',     label:'Elemento Variabile della Retribuzione(1)',                 type:'data'},
+  {key:'prod',    label:'Premio di Produzione',                                     type:'data'},
+  {key:'tot_a',   label:'TOTALE "A"',                                               type:'subtotal'},
+  {key:'hdr_B',   label:'B — Oneri aggiuntivi',                                    type:'section'},
+  {key:'fest',    label:'Festività mediamente coincidenti con la domenica (n.2)',   type:'data'},
+  {key:'nov4',    label:'4 novembre',                                               type:'data'},
+  {key:'tredic',  label:'Tredicesima mensilità',                                    type:'data'},
+  {key:'premio',  label:'Premio annuo',                                             type:'data'},
+  {key:'trasp',   label:'Indennità di trasporto',                                   type:'data'},
+  {key:'fedelta', label:'Premio Fedeltà',                                           type:'data'},
+  {key:'tot_b',   label:'TOTALE "B"',                                               type:'subtotal'},
+  {key:'hdr_C',   label:'C — Oneri previdenziali e assistenziali',                 type:'section'},
+  {key:'inps',    label:'Inps (29,06%)',                                            type:'data'},
+  {key:'inail',   label:'Inail (0,5%)',                                             type:'data'},
+  {key:'tot_c',   label:'TOTALE "C"',                                               type:'subtotal'},
+  {key:'mensa',   label:'Indennità sostitutiva di mensa',                           type:'data'},
+  {key:'tfr',     label:'Trattamento fine rapporto',                                type:'data'},
+  {key:'tfr_riv', label:'Rivalutazione T.F.R. (2,320017%)',                         type:'data'},
+  {key:'inddiv',  label:'Indennità diverse (Prev.Compl.50%, Diaria 50%, non limit.orario 25%)', type:'data'},
+  {key:'contcontr',label:'Contributo contrattuale previdenza complementare',        type:'data'},
+  {key:'sanedil', label:'Fondo Sanitario (Sanedil)',                                type:'data'},
+  {key:'costo_m', label:'COSTO MEDIO MENSILE',                                      type:'subtotal'},
+  {key:'retr_m',  label:'RETRIBUZIONE MENSILE (A)',                                 type:'data'},
+  {key:'retr_o',  label:'RETRIBUZIONE ORARIA (A:173)',                              type:'data'},
+  {key:'cmo',     label:'COSTO MEDIO ORARIO',                                      type:'total'},
+];
 
-/* ─── UTILS ──────────────────────────────────────────────────────────────── */
+/* ═══ CATEGORY STATE OBJECTS ══════════════════════════════════════════════ */
+const CAT_OP = {
+  key:'operai',
+  title:'Costo medio orario OPERAI 05/25 — DD23 26/03/26',
+  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai',
+  linkText:'📊 Link Tab. ufficiali costo lavoro operai',
+  RAW:[],DET_DATA:new Map(),detRegMap:new Map(),
+  mode:'province',lv:'lv1',sel:new Set(),aFilter:new Set(['N']),
+  activeBms:new Set(['naz']),chart:null,
+  detSel:new Set(),detLv:'lv1',
+  LVS:OP_LVS,LV_LBL:OP_LV_LBL,LV_SHT:OP_LV_SHT,DET_ROWS:OP_DET_ROWS,
+  loaded:false,detLoaded:false,
+};
+const CAT_IMP = {
+  key:'impiegati',
+  title:'Costo medio orario IMPIEGATI — CCNL Edilizia 26/03/26',
+  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-impiegati',
+  linkText:'📊 Link Tab. ufficiali costo lavoro impiegati',
+  RAW:[],DET_DATA:new Map(),detRegMap:new Map(),
+  mode:'province',lv:'lv1',sel:new Set(),aFilter:new Set(['N']),
+  activeBms:new Set(['naz']),chart:null,
+  detSel:new Set(),detLv:'lv1',
+  LVS:IMP_LVS,LV_LBL:IMP_LV_LBL,LV_SHT:IMP_LV_SHT,DET_ROWS:IMP_DET_ROWS,
+  loaded:false,detLoaded:false,
+};
+let C = CAT_OP;
+
+/* City (uppercase) → Operai entry — built after OP loads */
+const cityToOp = new Map();
+function buildCityMap(){ CAT_OP.RAW.forEach(d=>cityToOp.set(d.c.toUpperCase(),d)); }
+
+/* ═══ UTILS ════════════════════════════════════════════════════════════════ */
 const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+function aCode(s){ if(!s) return 'S'; const t=s.trim().toLowerCase(); if(t==='nord') return 'N'; if(t==='centro') return 'C'; return 'S'; }
+function pNum(v){ if(v==null||v==='') return 0; return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0; }
+function fmtEur(n){ return '€'+n.toFixed(2); }
+function setStatus(type,msg){ const el=document.getElementById('statusbar'); el.className='status-bar '+type; document.getElementById('statusmsg').textContent=msg; }
+function detSetStatus(type,msg){ const el=document.getElementById('det-statusbar'); el.className='status-bar '+type; document.getElementById('det-statusmsg').textContent=msg; }
 
-function aCode(s){
-  if(!s) return 'S';
-  const t = s.trim().toLowerCase();
-  if(t === 'nord')   return 'N';
-  if(t === 'centro') return 'C';
-  return 'S';
-}
-
-function pNum(v){
-  if(v == null || v === '') return 0;
-  return parseFloat(String(v).replace(',','.')) || 0;
-}
-
-function fmtEur(n){ return '€' + n.toFixed(2); }
-
-/* ─── STATUS ─────────────────────────────────────────────────────────────── */
-function setStatus(type, msg){
-  const el = document.getElementById('statusbar');
-  el.className = 'status-bar ' + type;
-  document.getElementById('statusmsg').textContent = msg;
-}
-
-/* ─── LOAD DATA ──────────────────────────────────────────────────────────── */
+/* ═══ LOAD OPERAI AGGREGATE ════════════════════════════════════════════════ */
 function loadData(){
-  const url = (typeof SHEET_CSV_URL !== 'undefined') ? SHEET_CSV_URL : '';
-
-  if(!url || url === 'INSERISCI_QUI_IL_LINK_CSV'){
-    setStatus('error', 'Collegamento Google Sheets non configurato. Inserisci il link CSV nella variabile SHEET_CSV_URL.');
-    return;
-  }
-
-  setStatus('loading', 'Connessione a Google Sheets…');
-
-  // Timeout: se nessuna risposta in 20s mostra errore con pulsante retry
-  const timer = setTimeout(() => {
-    setStatus('error', 'Il foglio non risponde (timeout 20s). Google Sheets può essere lento dopo molti aggiornamenti — <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-  }, 20000);
-
-  Papa.parse(url, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete({ data }){
+  setStatus('loading','Connessione Google Sheets (Operai)…');
+  const timer=setTimeout(()=>setStatus('error','Timeout 20s — <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>'),20000);
+  Papa.parse(SHEET_CSV_URL,{download:true,header:true,skipEmptyLines:true,
+    complete({data}){
       clearTimeout(timer);
-      if(!data?.length){
-        setStatus('error', 'Nessun dato ricevuto. Verifica che il foglio sia pubblicato come CSV pubblico. <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-        return;
-      }
-
-      RAW = data.map(r => ({
-        r:   (r['Regione'] || r['regione'] || '').trim(),
-        p:   (r['Sigla']   || r['sigla']   || '').trim(),
-        c:   (r['Città']   || r['Citta']   || r['citta'] || '').trim(),
-        a:   aCode(r['Area'] || r['area'] || ''),
-        lv1: pNum(r['1° liv'] || r['1 liv'] || r['lv1']),
-        lv2: pNum(r['2° liv'] || r['2 liv'] || r['lv2']),
-        lv3: pNum(r['3° liv'] || r['3 liv'] || r['lv3']),
-        lv4: pNum(r['4° liv'] || r['4 liv'] || r['lv4']),
-      })).filter(r => r.p && r.c);
-
-      if(!RAW.length){
-        setStatus('error', 'CSV letto ma senza righe valide. Controlla le colonne Sigla e Città. <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-        return;
-      }
-
-      setStatus('ok','');
-      buildBmBtns();
-      applyFilter();
-      renderList();
-      render();
+      if(!data?.length){ setStatus('error','Nessun dato. <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>'); return; }
+      CAT_OP.RAW=data.map(r=>({
+        r:(r['Regione']||r['regione']||'').trim(),
+        p:(r['Sigla']||r['sigla']||'').trim(),
+        c:(r['Città']||r['Citta']||r['citta']||'').trim(),
+        a:aCode(r['Area']||r['area']||''),
+        lv1:pNum(r['1° liv']||r['1 liv']||r['lv1']),
+        lv2:pNum(r['2° liv']||r['2 liv']||r['lv2']),
+        lv3:pNum(r['3° liv']||r['3 liv']||r['lv3']),
+        lv4:pNum(r['4° liv']||r['4 liv']||r['lv4']),
+      })).filter(r=>r.p&&r.c);
+      if(!CAT_OP.RAW.length){ setStatus('error','CSV valido ma nessuna riga. Controlla Sigla/Città.'); return; }
+      CAT_OP.loaded=true; buildCityMap();
+      if(C.key==='operai'){ setStatus('ok',''); buildBmBtns(); applyFilter(); renderList(); render(); }
     },
-    error({ message }){
-      clearTimeout(timer);
-      setStatus('error', `Errore: ${message} — <button onclick="loadData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>`);
-    }
+    error({message}){ clearTimeout(timer); setStatus('error','Errore: '+message); }
   });
 }
 
-/* ─── ITEMS ──────────────────────────────────────────────────────────────── */
-const getRegioni = () => [...new Set(RAW.map(d=>d.r))].sort((a,b)=>a.localeCompare(b,'it'));
-
-function getItems(){
-  if(mode === 'province')
-    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
-      .map(d => ({ id:d.p, lbl:d.p+' · '+d.c, sub:d.r, val:d[lv], a:d.a }));
-
-  return getRegioni().map(r => {
-    const rows = RAW.filter(d=>d.r===r);
-    return { id:r, lbl:r, sub:AREA_NAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a };
-  });
-}
-
-function getAllItems(){
-  if(mode === 'province')
-    return [...RAW].sort((a,b)=>a.c.localeCompare(b.c,'it'))
-      .map(d => ({ id:d.p, lbl:d.c, sub:d.r, val:d[lv], a:d.a }));
-
-  return getRegioni().map(r => {
-    const rows = RAW.filter(d=>d.r===r);
-    return { id:r, lbl:r, sub:AREA_NAME[rows[0].a], val:avg(rows.map(d=>d[lv])), a:rows[0].a };
-  });
-}
-
-/* ─── BENCHMARK ──────────────────────────────────────────────────────────── */
-function bmVal(k){
-  if(k==='naz') return avg(RAW.map(d=>d[lv]));
-  if(['N','C','S'].includes(k)) return avg(RAW.filter(d=>d.a===k).map(d=>d[lv]));
-  return 0;
-}
-
-function buildBmBtns(){
-  document.getElementById('bm-row').innerHTML = BMS.map(b => {
-    const on = activeBms.has(b.k);
-    return `<button class="bm-btn" data-bm="${b.k}" onclick="toggleBm(this)"
-      style="${on ? `background:${b.col};color:#fff;border-color:${b.col}` : ''}">${b.label}</button>`;
-  }).join('');
-}
-
-function toggleBm(btn){
-  const k = btn.dataset.bm;
-  const bm = BMS.find(b=>b.k===k);
-  if(activeBms.has(k)){ activeBms.delete(k); btn.style.cssText = ''; }
-  else{ activeBms.add(k); btn.style.cssText = `background:${bm.col};color:#fff;border-color:${bm.col}`; }
-  render();
-}
-
-/* ─── CONTROLS ───────────────────────────────────────────────────────────── */
-function setMode(m){
-  mode = m; sel.clear();
-  document.querySelectorAll('#mseg .mode-btn').forEach((b,i) => b.classList.toggle('on', ['province','regioni'][i]===m));
-  applyFilter(); renderList(); render();
-}
-
-function toggleArea(btn){
-  const a = btn.dataset.a;
-  if(aFilter.has(a) && aFilter.size===1) return;
-  if(aFilter.has(a)){ aFilter.delete(a); btn.classList.remove('on'); }
-  else{ aFilter.add(a); btn.classList.add('on'); }
-  sel.clear(); applyFilter(); renderList(); render();
-}
-
-function applyFilter(){
-  sel.clear();
-  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
-}
-
-function selAll(){
-  getItems().filter(i=>aFilter.has(i.a)).forEach(i=>sel.add(i.id));
-  renderList(); render();
-}
-function selNone(){ sel.clear(); renderList(); render(); }
-
-function toggle(id){
-  if(sel.has(id)) sel.delete(id); else sel.add(id);
-  renderList(); renderChips(); render();
-}
-function selMetro(){
-  const metro = ['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
-  sel.clear();
-  RAW.filter(d => metro.includes(d.p)).forEach(d => sel.add(d.p));
-  renderList(); renderChips(); render();
-}
-function setLv(btn){
-  lv = btn.dataset.lv;
-  document.querySelectorAll('.lv-btn').forEach(b=>b.classList.toggle('on', b.dataset.lv===lv));
-  renderList(); renderChips(); render();
-}
-
-/* ─── SEARCH (con gruppo-regione) ────────────────────────────────────────── */
-function onSearch(){
-  const q = document.getElementById('gsearch').value.trim().toLowerCase();
-  const drop = document.getElementById('sdrop');
-  if(q.length < 1){ drop.style.display='none'; return; }
-
-  let html = '';
-
-  if(mode === 'province'){
-    const regHits = getRegioni().filter(r=>r.toLowerCase().includes(q));
-    regHits.forEach(reg => {
-      const provs = RAW.filter(d=>d.r===reg).sort((a,b)=>a.c.localeCompare(b.c,'it'));
-      if(!provs.length) return;
-      const a = provs[0].a;
-      const mVal = avg(provs.map(d=>d[lv]));
-      const allSel = provs.every(d=>sel.has(d.p));
-      html += `
-        <div class="drop-group-row" onclick="addGroup('${reg.replace(/'/g,"\\'")}')">
-          <div class="drop-group-icon">${reg.slice(0,2).toUpperCase()}</div>
-          <div class="drop-group-text">
-            <div class="drop-group-name">${reg} — tutte le province</div>
-            <div class="drop-group-sub">${provs.length} province · media ${fmtEur(mVal)}/h · ${AREA_NAME[a]}</div>
-          </div>
-          <div class="drop-group-tag">${allSel ? '✓ selezionate' : '+ aggiungi tutte'}</div>
-        </div>
-        <div class="drop-divider">Province di ${reg}</div>`;
-      provs.slice(0,7).forEach(d => {
-        html += `<div class="drop-item" data-id="${d.p}" onclick="addItem(this.dataset.id)">
-          <div class="drop-dot" style="background:${AREA_COL[d.a]}"></div>
-          <div style="flex:1;min-width:0">
-            <div class="drop-name">${d.c}</div>
-            <div class="drop-sub">${d.p}${sel.has(d.p)?' · ✓':''}</div>
-          </div>
-          <div class="drop-val">${fmtEur(d[lv])}</div>
-        </div>`;
-      });
-      if(provs.length > 7)
-        html += `<div class="drop-divider" style="color:var(--blue-text);cursor:pointer" onclick="addGroup('${reg.replace(/'/g,"\\'")}')">+ altre ${provs.length-7} province — clicca per aggiungerle tutte</div>`;
-    });
-  }
-
-  const shownRegs = mode==='province' ? getRegioni().filter(r=>r.toLowerCase().includes(q)) : [];
-  const hits = getAllItems()
-    .filter(i => {
-      if(!i.lbl.toLowerCase().includes(q) && !i.sub.toLowerCase().includes(q)) return false;
-      if(mode==='province'){
-        const e = RAW.find(d=>d.p===i.id);
-        if(e && shownRegs.includes(e.r)) return false;
-      }
-      return true;
-    }).slice(0,8);
-
-  if(hits.length){
-    if(html) html += `<div class="drop-divider">Risultati per "${q}"</div>`;
-    hits.forEach(i => {
-      html += `<div class="drop-item" data-id="${i.id}" onclick="addItem(this.dataset.id)">
-        <div class="drop-dot" style="background:${AREA_COL[i.a]}"></div>
-        <div style="flex:1;min-width:0">
-          <div class="drop-name">${i.lbl}</div>
-          <div class="drop-sub">${i.sub}${sel.has(i.id)?' · ✓':''}</div>
-        </div>
-        <div class="drop-val">${fmtEur(i.val)}</div>
-      </div>`;
-    });
-  }
-
-  if(!html){ drop.style.display='none'; return; }
-  drop.innerHTML = html;
-  drop.style.display = 'block';
-}
-
-function addGroup(regName){
-  RAW.filter(d=>d.r===regName).forEach(d=>sel.add(d.p));
-  document.getElementById('gsearch').value = '';
-  document.getElementById('sdrop').style.display = 'none';
-  renderList(); renderChips(); render();
-}
-
-function addItem(id){
-  sel.add(id);
-  document.getElementById('gsearch').value = '';
-  document.getElementById('sdrop').style.display = 'none';
-  renderList(); renderChips(); render();
-}
-
-/* ─── RENDER LIST ────────────────────────────────────────────────────────── */
-function renderList(){
-  const items = getItems().filter(i=>aFilter.has(i.a));
-  document.getElementById('loc-list').innerHTML = items.map(it => `
-    <div class="list-item${sel.has(it.id)?' on':''}" data-id="${it.id}" onclick="toggle(this.dataset.id)">
-      <div class="li-dot" style="background:${AREA_COL[it.a]}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="li-name">${it.lbl}</div>
-        <div class="li-sub">${it.sub}</div>
-      </div>
-      <div class="li-val">${fmtEur(it.val)}</div>
-    </div>`).join('') || '<div style="padding:16px;text-align:center;color:var(--text-4);font-size:11px">Nessun dato</div>';
-  document.getElementById('sel-count').textContent = `${sel.size} ${sel.size === 1 ? 'elemento selezionato' : 'elementi selezionati'}`;
-}
-
-/* ─── RENDER CHIPS ───────────────────────────────────────────────────────── */
-function renderChips(){
-  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
-  const el = document.getElementById('chips');
-  if(!items.length){
-    el.innerHTML = '<span class="chips-empty">Nessun territorio selezionato — usa i filtri o la ricerca</span>';
-    return;
-  }
-  el.innerHTML = items.map(i => `
-    <span class="chip ${i.a}" data-id="${i.id}" onclick="toggle(this.dataset.id)" title="Rimuovi ${i.lbl}">
-      ${i.lbl}<span class="x"> ×</span>
-    </span>`).join('');
-}
-
-/* ─── RENDER INSIGHT ─────────────────────────────────────────────────────── */
-function renderInsight(items, vals){
-  const el = document.getElementById('insight-box');
-  if(!items.length){
-    el.innerHTML = `
-      <div class="insight-tag">Lettura automatica</div>
-      <div class="insight-title">Seleziona territori per avviare l'analisi</div>
-      <div class="insight-sub">Usa i filtri per area, l'elenco o la ricerca per costruire il confronto. Puoi cercare una regione per aggiungere tutte le sue province in un click.</div>`;
-    return;
-  }
-  const m = avg(vals), nat = bmVal('naz'), diff = m - nat;
-  const mx = Math.max(...vals), mn = Math.min(...vals);
-  const mxIt = items[vals.indexOf(mx)], mnIt = items[vals.indexOf(mn)];
-  const scost = diff > 0.01
-    ? `€/h sopra media nazionale <strong>€${diff.toFixed(2)}/h</strong>`
-    : diff < -0.01
-    ? `€/h sotto media nazionale <strong>€${Math.abs(diff).toFixed(2)}/h</strong>`
-    : `in linea con media nazionale`;
-  el.innerHTML = `
-    <div class="insight-tag">Lettura automatica · ${items.length} ${mode==='province'?'province':'regioni'} · ${LV_LABELS[LVS.indexOf(lv)]}</div>
-    <div class="insight-title">Il costo medio della selezione (${fmtEur(m)}/h) è ${scost}.</div>
-    <div class="insight-sub">
-      Valore più elevato: <strong>${mxIt.lbl}</strong> (${fmtEur(mx)}/h) —
-      valore più contenuto: <strong>${mnIt.lbl}</strong> (${fmtEur(mn)}/h).
-      Spread interno: <strong>€${(mx-mn).toFixed(2)}/h</strong>.
-    </div>`;
-}
-
-/* ─── RENDER KPI ─────────────────────────────────────────────────────────── */
-function renderKpi(items, vals){
-  if(!items.length){
-    document.getElementById('kpi-row').innerHTML = ['Media selezione','vs. media nazionale','Minimo','Massimo'].map(l=>`
-      <div class="kpi-card">
-        <div class="kpi-label">${l}</div>
-        <div class="kpi-value" style="color:var(--text-4)">—</div>
-        <div class="kpi-sub">Nessuna selezione</div>
-      </div>`).join('');
-    return;
-  }
-  const m = avg(vals), nat = bmVal('naz'), diff = m - nat;
-  const mx = Math.max(...vals), mn = Math.min(...vals);
-  const mxIt = items[vals.indexOf(mx)], mnIt = items[vals.indexOf(mn)];
-
-  document.getElementById('kpi-row').innerHTML = `
-    <div class="kpi-card primary">
-      <div class="kpi-label">Media selezione</div>
-      <div class="kpi-value">${fmtEur(m)}</div>
-      <div class="kpi-sub">${items.length} voci · ${LV_LABELS[LVS.indexOf(lv)]}</div>
-    </div>
-    <div class="kpi-card ${diff>=0?'up':'down'}">
-      <div class="kpi-label">vs. media nazionale</div>
-      <div class="kpi-value">${diff>=0?'+':''}${diff.toFixed(2)}</div>
-      <div class="kpi-sub">Riferimento nazionale: ${fmtEur(nat)}/h</div>
-    </div>
-    <div class="kpi-card down">
-      <div class="kpi-label">Minimo</div>
-      <div class="kpi-value">${fmtEur(mn)}</div>
-      <div class="kpi-sub">${mnIt.lbl}</div>
-    </div>
-    <div class="kpi-card up">
-      <div class="kpi-label">Massimo</div>
-      <div class="kpi-value">${fmtEur(mx)}</div>
-      <div class="kpi-sub">${mxIt.lbl}</div>
-    </div>`;
-}
-
-/* ─── RENDER LEGEND ──────────────────────────────────────────────────────── */
-function renderLegend(areasUsed){
-  const lg = document.getElementById('legend-row');
-  const areaItems = areasUsed.map(a => `
-    <div class="legend-item">
-      <div class="legend-swatch" style="background:${AREA_FILL[a]};border:1px solid ${AREA_COL[a]}"></div>
-      ${AREA_NAME[a]}
-    </div>`);
-  const bmItems = [...activeBms].map(k => {
-    const bm = BMS.find(b=>b.k===k);
-    return `<div class="legend-item" style="color:${bm.col}">
-      <div class="legend-line" style="color:${bm.col};border-bottom:2px dashed ${bm.col};width:16px;height:0;border-radius:0"></div>
-      <span style="color:var(--text-3)">${bm.label}: ${fmtEur(bmVal(k))}</span>
-    </div>`;
-  });
-  lg.innerHTML = [...areaItems, ...bmItems].join('');
-}
-
-/* ─── MAIN RENDER ────────────────────────────────────────────────────────── */
-function render(){
-  const items = getAllItems().filter(i=>sel.has(i.id)).sort((a,b)=>b.val-a.val);
-  renderChips();
-
-  const meta = document.getElementById('chart-meta');
-  meta.textContent = `${mode==='province'?'Province':'Regioni'} · ${LV_LABELS[LVS.indexOf(lv)]} · ${items.length} elementi`;
-
-  if(!items.length){
-    renderInsight([],[]);
-    renderKpi([],[]);
-    renderLegend([]);
-    if(chart){ chart.destroy(); chart=null; }
-    document.getElementById('chart-container').innerHTML = `
-      <div class="state-empty">
-        <div class="state-empty-icon">▤</div>
-        <div class="state-empty-text">Usa i filtri a sinistra o cerca una provincia<br>per costruire il grafico comparativo</div>
-      </div>`;
-    return;
-  }
-
-  const vals = items.map(i=>parseFloat(i.val.toFixed(2)));
-  renderInsight(items, vals);
-  renderKpi(items, vals);
-
-  const areasUsed = [...new Set(items.map(i=>i.a))];
-  renderLegend(areasUsed);
-
-  // Ensure canvas exists
-  const container = document.getElementById('chart-container');
-  if(!container.querySelector('canvas')){
-    container.innerHTML = '<canvas id="ch"></canvas>';
-  }
-
-  const allV = [...vals, ...[...activeBms].map(k=>bmVal(k))];
-  const minV = Math.max(0, Math.floor(Math.min(...allV)) - 1);
-  const maxV = Math.ceil(Math.max(...allV)) + 1;
-  const h = Math.max(280, items.length * 36 + 80);
-  container.style.height = h + 'px';
-
-  const datasets = [{
-    label: LV_LABELS[LVS.indexOf(lv)],
-    data: vals,
-    backgroundColor: items.map(i=>AREA_FILL[i.a]),
-    borderColor: items.map(i=>AREA_COL[i.a]),
-    borderWidth: 1,
-    borderRadius: 1,
-    barThickness: 16,
-    maxBarThickness: 20,
-    type: 'bar'
-  }];
-
-  activeBms.forEach(k => {
-    const bm = BMS.find(b=>b.k===k);
-    const v = parseFloat(bmVal(k).toFixed(2));
-    datasets.push({
-      label: bm.label,
-      data: Array(items.length).fill(v),
-      type: 'line',
-      borderColor: bm.col,
-      borderWidth: 1.5,
-      borderDash: bm.dash,
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      fill: false, tension: 0
-    });
-  });
-
-  if(chart) chart.destroy();
-  chart = new Chart(document.getElementById('ch'), {
-    type: 'bar',
-    data: { labels: items.map(i=>i.lbl), datasets },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 500, easing: 'easeOutQuart' },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#111827',
-          titleColor: '#f9fafb',
-          bodyColor: '#d1d5db',
-          padding: 10,
-          cornerRadius: 3,
-          titleFont: { family: "'IBM Plex Sans', sans-serif", size: 12, weight: '600' },
-          bodyFont:  { family: "'IBM Plex Mono', monospace", size: 12 },
-          callbacks: {
-            label: ctx => ctx.dataset.type === 'line'
-              ? `${ctx.dataset.label}: ${fmtEur(ctx.parsed.x)}/h`
-              : `Costo medio: ${fmtEur(ctx.parsed.x)}/h`
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: minV, max: maxV,
-          ticks: {
-            callback: v => `€${v}`,
-            font: { family: "'IBM Plex Mono', monospace", size: 10 },
-            color: '#9ca3af'
-          },
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          border: { color: 'rgba(0,0,0,0.08)' }
-        },
-        y: {
-          ticks: {
-            font: { family: "'IBM Plex Sans', sans-serif", size: 11 },
-            color: '#374151'
-          },
-          grid: { display: false },
-          border: { color: 'rgba(0,0,0,0.08)' }
-        }
-      }
-    }
-  });
-}
-
-/* ─── PRINT ──────────────────────────────────────────────────────────────── */
-function doPrint(){
-  const items = getAllItems().filter(i=>sel.has(i.id));
-  const areas = [...aFilter].map(a=>AREA_NAME[a]).join(', ');
-  document.getElementById('print-note').textContent =
-    `Elaborazione: ANCE Piemonte V.d.A. S.E.&O.· Filtro: ${areas} · ${mode} · ${LV_LABELS[LVS.indexOf(lv)]} · ${items.length} voci · ${new Date().toLocaleDateString('it-IT')}`;
-  window.print();
-}
-
-/* ─── VIEW SWITCHER ──────────────────────────────────────────────────────── */
-let detInitialized = false;
-
-function switchView(v){
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.view === v));
-  document.getElementById('view-agg').classList.toggle('active', v === 'agg');
-  document.getElementById('view-det').classList.toggle('active', v === 'det');
-  if(v === 'det' && !detInitialized){
-    detInitialized = true;
-    loadDettagli();
-  }
-}
-
-/* ─── DETAIL: CONFIG ─────────────────────────────────────────────────────── */
-const DET_ROWS = [
-  { key:'hdr_A',     label:'A — Elementi retributivi orari',                          type:'section'  },
-  { key:'minimo',    label:'Minimo',                                                   type:'data'     },
-  { key:'conting',   label:'Ind. contingenza',                                         type:'data'     },
-  { key:'edr',       label:'E.D.R. - ex prot.23/7/1993',                              type:'data'     },
-  { key:'evr',       label:'Elemento Variabile della Retribuzione(1)',                 type:'data'     },
-  { key:'its',       label:'Indennità di settore ITS',                                 type:'data'     },
-  { key:'tot_a',     label:'TOTALE "A"',                                               type:'subtotal' },
-  { key:'hdr_B',     label:'B — Oneri aggiuntivi',                                    type:'section'  },
-  { key:'fest12',    label:'Retribuzione 12 festività',                                type:'data'     },
-  { key:'nov4',      label:'Retribuzione 4 novembre',                                  type:'data'     },
-  { key:'riposi',    label:'Riposi annui (4,95%)',                                     type:'data'     },
-  { key:'gnf',       label:'Accantonamento Cassa Edile per GNF (18,50%)',             type:'data'     },
-  { key:'trasp',     label:'Indennità di trasporto',                                   type:'data'     },
-  { key:'assemb',    label:'Retribuzione assemblee, diritto allo studio e formazione', type:'data'     },
-  { key:'mal',       label:'Accantonamento Cassa Edile per malattia e infortunio',    type:'data'     },
-  { key:'finc',      label:"Fondo incentivo all'occupazione (0,10%)",                  type:'data'     },
-  { key:'tot_b',     label:'TOTALE "B"',                                               type:'subtotal' },
-  { key:'hdr_C',     label:'C — Oneri previdenziali e assistenziali',                 type:'section'  },
-  { key:'inps',      label:'Inps (34,28%) — 15-50 dipendenti',                        type:'data'     },
-  { key:'inail',     label:'Inail (11,00%)',                                           type:'data'     },
-  { key:'cassa',     label:'Contributi Cassa Edile',                                   type:'data', cassaNote:true },
-  { key:'magg',      label:'Maggiorazione contributiva Inps/Inail su Cassa Edile',    type:'data'     },
-  { key:'tot_c',     label:'TOTALE "C"',                                               type:'subtotal' },
-  { key:'mensa',     label:'Indennità sostitutiva di mensa',                           type:'data'     },
-  { key:'tfr',       label:'Trattamento fine rapporto',                                type:'data'     },
-  { key:'tfr_riv',   label:'Rivalutazione T.F.R. (2,320017%)',                         type:'data'     },
-  { key:'oneri',     label:'Oneri vari: trasferte, prev. complementare, disagio 50%', type:'data'     },
-  { key:'contcontr', label:'Contributo contrattuale previdenza complementare',         type:'data'     },
-  { key:'sanedil',   label:'Fondo Sanitario (Sanedil)',                                type:'data'     },
-  { key:'cmo',       label:'COSTO MEDIO ORARIO',                                      type:'total'    },
-];
-
-/* ─── DETAIL: STATE ──────────────────────────────────────────────────────── */
-let DET_DATA  = new Map(); // sigla → { r, p, c, a, data:{key:{lv1..lv4}}, cassaPercent }
-let detSel    = new Set();
-let detLv     = 'lv1';
-let detRegMap = new Map(); // regione → [sigle]
-
-/* ─── DETAIL: NORMALIZE DESCRIPTION → ROW KEY ───────────────────────────── */
+/* ═══ LOAD OPERAI DETAIL ═══════════════════════════════════════════════════ */
 function normDesc(raw){
-  const d = raw.trim().toLowerCase().replace(/\s+/g,' ');
-  if(d === 'minimo') return 'minimo';
+  const d=raw.trim().toLowerCase().replace(/\s+/g,' ');
+  if(d==='minimo') return 'minimo';
   if(d.startsWith('ind. contingenza')) return 'conting';
   if(d.startsWith('e.d.r.')) return 'edr';
   if(d.startsWith('elemento variabile')) return 'evr';
-  if(d.startsWith('indennit') && d.includes('settore')) return 'its';
-  if(d.includes('totale') && d.includes('"a"')) return 'tot_a';
+  if(d.startsWith('indennit')&&d.includes('settore')) return 'its';
+  if(d.includes('totale')&&d.includes('"a"')) return 'tot_a';
   if(d.startsWith('retribuzione 12')) return 'fest12';
   if(d.startsWith('retribuzione 4 nov')) return 'nov4';
   if(d.startsWith('riposi annui')) return 'riposi';
-  if(d.startsWith('accantonamento cassa edile per gnf')) return 'gnf';
-  if(d.startsWith('accantonamento cassa edile  per gnf')) return 'gnf';
-  if(d.startsWith('indennit') && d.includes('trasporto')) return 'trasp';
+  if(d.startsWith('accantonamento cassa edile per gnf')||d.startsWith('accantonamento cassa edile  per gnf')) return 'gnf';
+  if(d.startsWith('indennit')&&d.includes('trasporto')) return 'trasp';
   if(d.startsWith('retribuzione assemblee')) return 'assemb';
-  if(d.startsWith('accantonamento cassa edile per malattia')) return 'mal';
-  if(d.startsWith('accantonamento cassa edile  per malattia')) return 'mal';
+  if(d.startsWith('accantonamento cassa edile per malattia')||d.startsWith('accantonamento cassa edile  per malattia')) return 'mal';
   if(d.startsWith('fondo incentivo')) return 'finc';
-  if(d.includes('totale') && d.includes('"b"')) return 'tot_b';
+  if(d.includes('totale')&&d.includes('"b"')) return 'tot_b';
   if(d.startsWith('inps')) return 'inps';
   if(d.startsWith('inail')) return 'inail';
   if(d.startsWith('contributi cassa edile')) return 'cassa';
-  if(d === "all'occupazione") return 'magg';       // continuation of maggiorazione
-  if(d.startsWith('maggiorazione contributiva')) return null; // skip the header-only row
-  if(d.includes('totale') && d.includes('"c"')) return 'tot_c';
-  if(d.startsWith('indennit') && d.includes('mensa')) return 'mensa';
+  if(d==="all'occupazione") return 'magg';
+  if(d.startsWith('maggiorazione contributiva')) return null;
+  if(d.includes('totale')&&d.includes('"c"')) return 'tot_c';
+  if(d.startsWith('indennit')&&d.includes('mensa')) return 'mensa';
   if(d.startsWith('trattamento fine rapporto')) return 'tfr';
-  if(d.startsWith('rivalutazione t.f.r.') || d.startsWith('rivalutazione tfr')) return 'tfr_riv';
+  if(d.startsWith('rivalutazione t.f.r.')||d.startsWith('rivalutazione tfr')) return 'tfr_riv';
   if(d.startsWith('oneri vari')) return 'oneri';
   if(d.startsWith('contributo contrattuale')) return 'contcontr';
   if(d.startsWith('fondo sanitario')) return 'sanedil';
   if(d.startsWith('costo medio orario')) return 'cmo';
-  return null; // city names, section headers (A/B/C), unknown
-}
-
-/* ─── DETAIL: LOAD DATA ──────────────────────────────────────────────────── */
-function detSetStatus(type, msg){
-  const el = document.getElementById('det-statusbar');
-  el.className = 'status-bar ' + type;
-  document.getElementById('det-statusmsg').textContent = msg;
+  return null;
 }
 
 function loadDettagli(){
-  const url = (typeof DETTAGLI_CSV_URL !== 'undefined') ? DETTAGLI_CSV_URL : '';
-  if(!url || url === 'INSERISCI_QUI_IL_LINK_CSV_DETTAGLI'){
-    detSetStatus('error','Collegamento foglio Dettagli non configurato. Inserisci DETTAGLI_CSV_URL nel file HTML.');
-    return;
-  }
-  detSetStatus('loading','Caricamento Analisi per voce da Google Sheets…');
-
-  const timer = setTimeout(() => {
-    detSetStatus('error', 'Il foglio non risponde (timeout 20s). <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-  }, 20000);
-
-  Papa.parse(url, {
-    download: true,
-    header: false,
-    skipEmptyLines: true,
-    complete({ data }){
+  detSetStatus('loading','Caricamento Analisi per voce (Operai)…');
+  const timer=setTimeout(()=>detSetStatus('error','Timeout 20s. <button onclick="CAT_OP.detLoaded=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>'),20000);
+  Papa.parse(DETTAGLI_CSV_URL,{download:true,header:false,skipEmptyLines:true,
+    complete({data}){
       clearTimeout(timer);
-      if(!data?.length){
-        detSetStatus('error','Nessun dato ricevuto dal foglio Dettagli. <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-        return;
-      }
-
-      // Build per-province map
-      const byProv = new Map();
-      data.forEach(row => {
-        const sig = (row[1] || '').trim();
-        if(!sig) return;
-        if(!byProv.has(sig)) byProv.set(sig, { r:(row[0]||'').trim(), p:sig, c:(row[2]||'').trim(), rows:[] });
+      if(!data?.length){ detSetStatus('error','Nessun dato dal foglio Dettagli Operai.'); return; }
+      const byProv=new Map();
+      data.forEach(row=>{
+        const sig=(row[1]||'').trim();
+        if(!sig||sig==='Sigla') return;
+        if(!byProv.has(sig)) byProv.set(sig,{r:(row[0]||'').trim(),p:sig,c:(row[2]||'').trim(),rows:[]});
         byProv.get(sig).rows.push(row);
       });
-
-      DET_DATA.clear();
-      detRegMap.clear();
-
-      byProv.forEach((prov, sig) => {
-        const parsedData = {};
-        let cassaPercent = '';
-
-        prov.rows.forEach(row => {
-          const desc = (row[3] || '').trim();
-          const key  = normDesc(desc);
-          if(!key) return;
-
-          if(key === 'cassa'){
-            const m = desc.match(/\(([0-9,]+%)\)/);
-            if(m) cassaPercent = m[1];
-          }
-
-          parsedData[key] = {
-            lv1: pNum(row[4]),
-            lv2: pNum(row[5]),
-            lv3: pNum(row[6]),
-            lv4: pNum(row[7]),
-          };
+      CAT_OP.DET_DATA.clear(); CAT_OP.detRegMap.clear();
+      byProv.forEach((prov,sig)=>{
+        const pd={}; let cp='';
+        prov.rows.forEach(row=>{
+          const k=normDesc((row[3]||'').trim());
+          if(!k) return;
+          if(k==='cassa'){ const m=(row[3]||'').match(/\(([0-9,]+%)\)/); if(m) cp=m[1]; }
+          pd[k]={lv1:pNum(row[4]),lv2:pNum(row[5]),lv3:pNum(row[6]),lv4:pNum(row[7])};
         });
-
-        const rawEntry = RAW.find(d=>d.p===sig);
-        const aVal = rawEntry?.a || 'S';
-
-        DET_DATA.set(sig, { r:prov.r, p:sig, c:prov.c, a:aVal, data:parsedData, cassaPercent });
-
-        if(!detRegMap.has(prov.r)) detRegMap.set(prov.r, []);
-        detRegMap.get(prov.r).push(sig);
+        const ae=CAT_OP.RAW.find(d=>d.p===sig);
+        CAT_OP.DET_DATA.set(sig,{r:prov.r,p:sig,c:prov.c,a:ae?.a||'S',data:pd,cassaPercent:cp});
+        if(!CAT_OP.detRegMap.has(prov.r)) CAT_OP.detRegMap.set(prov.r,[]);
+        CAT_OP.detRegMap.get(prov.r).push(sig);
       });
-
-      if(!DET_DATA.size){
-        detSetStatus('error','Dati letti ma nessuna provincia trovata. Controlla la struttura del foglio. <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>');
-        return;
+      if(!CAT_OP.DET_DATA.size){ detSetStatus('error','Nessuna provincia trovata.'); return; }
+      CAT_OP.detLoaded=true;
+      if(C.key==='operai'){
+        detSetStatus('ok','');
+        document.getElementById('tab-info').textContent=CAT_OP.DET_DATA.size+' province caricate';
+        CAT_OP.DET_DATA.forEach((prov,sig)=>{ if(prov.a==='N') CAT_OP.detSel.add(sig); });
+        detRenderList(); detRenderChips(); detRenderTable();
       }
-
-      detSetStatus('ok','');
-      document.getElementById('tab-info').textContent = `${DET_DATA.size} province caricate`;
-
-      // Default: province Nord
-      DET_DATA.forEach((prov, sig) => {
-        if(prov.a === 'N') detSel.add(sig);
-      });
-
-      detRenderList();
-      detRenderChips();
-      detRenderTable();
     },
-    error({ message }){
+    error({message}){ clearTimeout(timer); detSetStatus('error','Errore: '+message); }
+  });
+}
+
+/* ═══ LOAD IMPIEGATI (unico CSV per aggregato + dettaglio) ════════════════ */
+function normDescImp(raw){
+  const d=raw.trim().toLowerCase().replace(/\s+/g,' ');
+  if(d==='minimo') return 'minimo';
+  if(d.startsWith('scatti biennali')) return 'scatti';
+  if(d.startsWith('ind. contingenza')) return 'conting';
+  if(d.startsWith('e.d.r.')) return 'edr';
+  if(d.startsWith('indenni')&&d.includes('funzione')) return 'funz';
+  if(d.startsWith('elemento variabile')) return 'evr';
+  if(d.startsWith('premio di produzione')) return 'prod';
+  if(d.includes('totale')&&d.includes('"a"')) return 'tot_a';
+  if(d.startsWith('festivit')) return 'fest';
+  if(d.startsWith('4 novembre')) return 'nov4';
+  if(d.startsWith('tredicesima')) return 'tredic';
+  if(d.startsWith('premio annuo')) return 'premio';
+  if(d.startsWith('indenni')&&d.includes('trasporto')) return 'trasp';
+  if(d.startsWith('premio fed')) return 'fedelta';
+  if(d.includes('totale')&&d.includes('"b"')) return 'tot_b';
+  if(d.startsWith('inps')) return 'inps';
+  if(d.startsWith('inail')) return 'inail';
+  if(d.includes('totale')&&d.includes('"c"')) return 'tot_c';
+  if(d.startsWith('indenni')&&d.includes('mensa')) return 'mensa';
+  if(d.startsWith('trattamento fine rapporto')) return 'tfr';
+  if(d.startsWith('rivalutazione t.f.r.')||d.startsWith('rivalutazione tfr')) return 'tfr_riv';
+  if(d.startsWith('indenni')&&d.includes('diverse')) return null; // riga senza valori
+  if(d.startsWith('limitazione orario')) return 'inddiv';         // riga con valori
+  if(d.startsWith('contributo contrattuale')) return 'contcontr';
+  if(d.startsWith('fondo sanitario')) return 'sanedil';
+  if(d.startsWith('costo medio mensile')) return 'costo_m';
+  if(d.startsWith('retribuzione mensile')) return 'retr_m';
+  if(d.startsWith('retribuzione oraria')) return 'retr_o';
+  if(d.startsWith('costo medio orario')) return 'cmo';
+  return null;
+}
+
+function loadImpData(){
+  setStatus('loading','Caricamento dati Impiegati da Google Sheets…');
+  detSetStatus('loading','Caricamento Analisi per voce (Impiegati)…');
+  const timer=setTimeout(()=>{ if(C.key==='impiegati') setStatus('error','Timeout 25s. <button onclick="loadImpData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>'); },25000);
+  Papa.parse(DETTAGLI_IMP_CSV_URL,{download:true,header:false,skipEmptyLines:true,
+    complete({data}){
       clearTimeout(timer);
-      detSetStatus('error', `Errore: ${message} — <button onclick="detInitialized=false;loadDettagli()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>`);
+      if(!data?.length){ if(C.key==='impiegati') setStatus('error','Nessun dato ricevuto.'); return; }
+      const byCity=new Map();
+      data.forEach((row,idx)=>{
+        if(idx===0) return;
+        const city=(row[2]||'').trim();
+        if(!city||city==='Città') return;
+        if(!byCity.has(city)) byCity.set(city,[]);
+        byCity.get(city).push(row);
+      });
+      CAT_IMP.RAW=[]; CAT_IMP.DET_DATA.clear(); CAT_IMP.detRegMap.clear();
+      byCity.forEach((rows,city)=>{
+        const pd={};
+        rows.forEach(row=>{
+          const k=normDescImp((row[3]||'').trim());
+          if(!k) return;
+          pd[k]={lv1:pNum(row[4]),lv2:pNum(row[5]),lv3:pNum(row[6]),lv4:pNum(row[7]),
+                  lv5:pNum(row[8]),lv6:pNum(row[9]),lv7:pNum(row[10]),lv8:pNum(row[11])};
+        });
+        const op=cityToOp.get(city.toUpperCase());
+        const aVal=op?.a||'S', reg=op?.r||'';
+        CAT_IMP.DET_DATA.set(city,{r:reg,p:city,c:city,a:aVal,data:pd,cassaPercent:''});
+        if(!CAT_IMP.detRegMap.has(reg)) CAT_IMP.detRegMap.set(reg,[]);
+        CAT_IMP.detRegMap.get(reg).push(city);
+        const cmo=pd['cmo'];
+        if(cmo) CAT_IMP.RAW.push({r:reg,p:city,c:city,a:aVal,lv1:cmo.lv1,lv2:cmo.lv2,lv3:cmo.lv3,lv4:cmo.lv4,lv5:cmo.lv5,lv6:cmo.lv6,lv7:cmo.lv7,lv8:cmo.lv8});
+      });
+      if(!CAT_IMP.DET_DATA.size){ if(C.key==='impiegati') setStatus('error','Nessuna città trovata. Controlla il foglio DettagliImp.'); return; }
+      CAT_IMP.loaded=true; CAT_IMP.detLoaded=true;
+      if(C.key==='impiegati'){
+        setStatus('ok',''); detSetStatus('ok','');
+        document.getElementById('tab-info').textContent=CAT_IMP.DET_DATA.size+' province caricate';
+        CAT_IMP.DET_DATA.forEach((p,city)=>{ if(p.a==='N') CAT_IMP.detSel.add(city); });
+        buildBmBtns(); applyFilter(); renderList(); render();
+        detRenderList(); detRenderChips(); detRenderTable();
+      }
+    },
+    error({message}){ clearTimeout(timer); if(C.key==='impiegati') setStatus('error','Errore: '+message); }
+  });
+}
+
+/* ═══ SWITCH CATEGORY ══════════════════════════════════════════════════════ */
+function switchCat(key){
+  if(C.key===key) return;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('on',b.dataset.cat===key));
+  if(C.chart){ C.chart.destroy(); C.chart=null; }
+  C = key==='operai' ? CAT_OP : CAT_IMP;
+  document.getElementById('header-title').textContent=C.title;
+  document.getElementById('header-link').href=C.link;
+  document.getElementById('header-link').textContent=C.linkText;
+  renderLvBtns();
+  document.querySelectorAll('.area-btn').forEach(b=>b.classList.toggle('on',C.aFilter.has(b.dataset.a)));
+  document.querySelectorAll('#mseg .mode-btn').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===C.mode));
+  if(!C.loaded){
+    if(C.key==='operai') loadData();
+    else if(CAT_OP.loaded) loadImpData();
+    else{
+      setStatus('loading','In attesa del caricamento dati Operai…');
+      const w=setInterval(()=>{ if(CAT_OP.loaded){ clearInterval(w); loadImpData(); } },600);
+    }
+  } else {
+    setStatus('ok',''); buildBmBtns(); applyFilter(); renderList(); render();
+    if(C.detLoaded){
+      detSetStatus('ok','');
+      document.getElementById('tab-info').textContent=C.DET_DATA.size+' province caricate';
+      detRenderList(); detRenderChips(); detRenderTable();
+    }
+  }
+}
+
+/* ─── RENDER LEVEL BUTTONS ──────────────────────────────────────────────── */
+function renderLvBtns(){
+  [['lv-row',C.lv,'setLv'],['det-lv-row',C.detLv,'detSetLv']].forEach(([id,curLv,fn])=>{
+    const row=document.getElementById(id);
+    if(!row) return;
+    row.innerHTML=C.LVS.map((lv,i)=>`<button class="lv-btn${curLv===lv?' on':''}" data-lv="${lv}" onclick="${fn}(this)">${C.LV_SHT[i]}</button>`).join('');
+  });
+}
+
+/* ═══ ITEMS + BENCHMARK ═════════════════════════════════════════════════════ */
+const getRegioni=()=>[...new Set(C.RAW.map(d=>d.r))].sort((a,b)=>a.localeCompare(b,'it'));
+function getItems(){
+  if(C.mode==='province') return [...C.RAW].sort((a,b)=>a.c.localeCompare(b.c,'it')).map(d=>({id:d.p,lbl:d.p+' · '+d.c,sub:d.r,val:d[C.lv],a:d.a}));
+  return getRegioni().map(r=>{ const rows=C.RAW.filter(d=>d.r===r); return {id:r,lbl:r,sub:AREA_NAME[rows[0].a],val:avg(rows.map(d=>d[C.lv])),a:rows[0].a}; });
+}
+function getAllItems(){
+  if(C.mode==='province') return [...C.RAW].sort((a,b)=>a.c.localeCompare(b.c,'it')).map(d=>({id:d.p,lbl:d.c,sub:d.r,val:d[C.lv],a:d.a}));
+  return getRegioni().map(r=>{ const rows=C.RAW.filter(d=>d.r===r); return {id:r,lbl:r,sub:AREA_NAME[rows[0].a],val:avg(rows.map(d=>d[C.lv])),a:rows[0].a}; });
+}
+function bmVal(k){ if(k==='naz') return avg(C.RAW.map(d=>d[C.lv])); if(['N','C','S'].includes(k)) return avg(C.RAW.filter(d=>d.a===k).map(d=>d[C.lv])); return 0; }
+function buildBmBtns(){
+  document.getElementById('bm-row').innerHTML=BMS.map(b=>{
+    const on=C.activeBms.has(b.k);
+    return '<button class="bm-btn" data-bm="'+b.k+'" onclick="toggleBm(this)" style="'+(on?'background:'+b.col+';color:#fff;border-color:'+b.col:'')+'">'+ b.label+'</button>';
+  }).join('');
+}
+function toggleBm(btn){ const k=btn.dataset.bm,bm=BMS.find(b=>b.k===k); if(C.activeBms.has(k)){C.activeBms.delete(k);btn.style.cssText='';}else{C.activeBms.add(k);btn.style.cssText='background:'+bm.col+';color:#fff;border-color:'+bm.col;} render(); }
+
+/* ═══ CONTROLS ══════════════════════════════════════════════════════════════ */
+function setMode(m){ C.mode=m;C.sel.clear(); document.querySelectorAll('#mseg .mode-btn').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===m)); applyFilter();renderList();render(); }
+function toggleArea(btn){ const a=btn.dataset.a; if(C.aFilter.has(a)&&C.aFilter.size===1) return; if(C.aFilter.has(a)){C.aFilter.delete(a);btn.classList.remove('on');}else{C.aFilter.add(a);btn.classList.add('on');} C.sel.clear();applyFilter();renderList();render(); }
+function applyFilter(){ C.sel.clear(); getItems().filter(i=>C.aFilter.has(i.a)).forEach(i=>C.sel.add(i.id)); }
+function selAll(){ getItems().filter(i=>C.aFilter.has(i.a)).forEach(i=>C.sel.add(i.id)); renderList();render(); }
+function selNone(){ C.sel.clear(); renderList();render(); }
+function toggle(id){ if(C.sel.has(id))C.sel.delete(id);else C.sel.add(id); renderList();renderChips();render(); }
+function selMetro(){
+  const metro=['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
+  const metroCities=['ROMA','TORINO','MILANO','VENEZIA','GENOVA','BOLOGNA','FIRENZE','BARI','NAPOLI','REGGIO CALABRIA'];
+  C.sel.clear();
+  C.RAW.filter(d=>metro.includes(d.p)||metroCities.includes(d.c.toUpperCase())).forEach(d=>C.sel.add(d.p));
+  renderList();renderChips();render();
+}
+function setLv(btn){ C.lv=btn.dataset.lv; document.querySelectorAll('#lv-row .lv-btn').forEach(b=>b.classList.toggle('on',b.dataset.lv===C.lv)); renderList();renderChips();render(); }
+
+/* ═══ SEARCH ════════════════════════════════════════════════════════════════ */
+function onSearch(){
+  const q=document.getElementById('gsearch').value.trim().toLowerCase();
+  const drop=document.getElementById('sdrop');
+  if(q.length<1){drop.style.display='none';return;}
+  let html='';
+  if(C.mode==='province'){
+    getRegioni().filter(r=>r.toLowerCase().includes(q)).forEach(reg=>{
+      const provs=C.RAW.filter(d=>d.r===reg).sort((a,b)=>a.c.localeCompare(b.c,'it'));
+      if(!provs.length) return;
+      const a=provs[0].a, mVal=avg(provs.map(d=>d[C.lv])), allSel=provs.every(d=>C.sel.has(d.p));
+      const regEsc=reg.replace(/'/g,"\\'");
+      html+='<div class="drop-group-row" onclick="addGroup(\''+regEsc+'\')"><div class="drop-group-icon">'+reg.slice(0,2).toUpperCase()+'</div><div class="drop-group-text"><div class="drop-group-name">'+reg+' — tutte le province</div><div class="drop-group-sub">'+provs.length+' province · media '+fmtEur(mVal)+'/h · '+AREA_NAME[a]+'</div></div><div class="drop-group-tag">'+(allSel?'✓ selezionate':'+ aggiungi tutte')+'</div></div><div class="drop-divider">Province di '+reg+'</div>';
+      provs.slice(0,7).forEach(d=>{ html+='<div class="drop-item" data-id="'+d.p+'" onclick="addItem(this.dataset.id)"><div class="drop-dot" style="background:'+AREA_COL[d.a]+'"></div><div style="flex:1;min-width:0"><div class="drop-name">'+d.c+'</div><div class="drop-sub">'+d.p+(C.sel.has(d.p)?' · ✓':'')+'</div></div><div class="drop-val">'+fmtEur(d[C.lv])+'</div></div>'; });
+      if(provs.length>7) html+='<div class="drop-divider" style="color:var(--blue-text);cursor:pointer" onclick="addGroup(\''+regEsc+'\')">+ altre '+(provs.length-7)+' province</div>';
+    });
+  }
+  const shownRegs=C.mode==='province'?getRegioni().filter(r=>r.toLowerCase().includes(q)):[];
+  const hits=getAllItems().filter(i=>{ if(!i.lbl.toLowerCase().includes(q)&&!i.sub.toLowerCase().includes(q)) return false; if(C.mode==='province'){ const e=C.RAW.find(d=>d.p===i.id); if(e&&shownRegs.includes(e.r)) return false; } return true; }).slice(0,8);
+  if(hits.length){ if(html) html+='<div class="drop-divider">Risultati per "'+q+'"</div>'; hits.forEach(i=>{ html+='<div class="drop-item" data-id="'+i.id+'" onclick="addItem(this.dataset.id)"><div class="drop-dot" style="background:'+AREA_COL[i.a]+'"></div><div style="flex:1;min-width:0"><div class="drop-name">'+i.lbl+'</div><div class="drop-sub">'+i.sub+(C.sel.has(i.id)?' · ✓':'')+'</div></div><div class="drop-val">'+fmtEur(i.val)+'</div></div>'; }); }
+  if(!html){drop.style.display='none';return;}
+  drop.innerHTML=html; drop.style.display='block';
+}
+function addGroup(regName){ C.RAW.filter(d=>d.r===regName).forEach(d=>C.sel.add(d.p)); document.getElementById('gsearch').value=''; document.getElementById('sdrop').style.display='none'; renderList();renderChips();render(); }
+function addItem(id){ C.sel.add(id); document.getElementById('gsearch').value=''; document.getElementById('sdrop').style.display='none'; renderList();renderChips();render(); }
+
+/* ═══ RENDER LIST ═══════════════════════════════════════════════════════════ */
+function renderList(){
+  const items=getItems().filter(i=>C.aFilter.has(i.a));
+  document.getElementById('loc-list').innerHTML=items.map(it=>'<div class="list-item'+(C.sel.has(it.id)?' on':'')+'" data-id="'+it.id+'" onclick="toggle(this.dataset.id)"><div class="li-dot" style="background:'+AREA_COL[it.a]+'"></div><div style="flex:1;min-width:0"><div class="li-name">'+it.lbl+'</div><div class="li-sub">'+it.sub+'</div></div><div class="li-val">'+fmtEur(it.val)+'</div></div>').join('')||'<div style="padding:16px;text-align:center;color:var(--text-4);font-size:11px">Nessun dato</div>';
+  document.getElementById('sel-count').textContent=C.sel.size+' '+(C.sel.size===1?'elemento selezionato':'elementi selezionati');
+}
+
+/* ═══ RENDER CHIPS ══════════════════════════════════════════════════════════ */
+function renderChips(){
+  const items=getAllItems().filter(i=>C.sel.has(i.id)).sort((a,b)=>a.lbl.localeCompare(b.lbl,'it'));
+  const el=document.getElementById('chips');
+  if(!items.length){el.innerHTML='<span class="chips-empty">Nessun territorio selezionato</span>';return;}
+  el.innerHTML=items.map(i=>'<span class="chip '+(i.a||'')+'" data-id="'+i.id+'" onclick="toggle(this.dataset.id)" title="Rimuovi '+i.lbl+'">'+i.lbl+'<span class="x"> ×</span></span>').join('');
+}
+
+/* ═══ RENDER CHART ══════════════════════════════════════════════════════════ */
+function render(){
+  const items=getAllItems().filter(i=>C.sel.has(i.id));
+  const lvIdx=C.LVS.indexOf(C.lv), lvLabel=C.LV_LBL[lvIdx]||C.lv;
+  const naz=bmVal('naz'), nazFmt=fmtEur(naz);
+  renderChips();
+
+  // KPI
+  if(items.length){
+    const vals=items.map(i=>i.val), selAvg=avg(vals), selMin=Math.min(...vals), selMax=Math.max(...vals);
+    const diff=selAvg-naz, pct=(naz?diff/naz*100:0), minItem=items.find(i=>i.val===selMin), maxItem=items.find(i=>i.val===selMax);
+    document.getElementById('kpi-row').innerHTML=
+      '<div class="kpi-card primary"><div class="kpi-label">Media selezione</div><div class="kpi-value">'+fmtEur(selAvg)+'</div><div class="kpi-sub">'+lvLabel+' · '+items.length+' territori</div></div>'+
+      '<div class="kpi-card '+(diff>0?'up':'down')+'"><div class="kpi-label">vs. media nazionale</div><div class="kpi-value">'+(diff>0?'+':'')+fmtEur(diff)+'</div><div class="kpi-sub">'+(pct>0?'+':'')+pct.toFixed(1)+'% rispetto a '+nazFmt+'/h</div></div>'+
+      '<div class="kpi-card down"><div class="kpi-label">Minimo</div><div class="kpi-value">'+fmtEur(selMin)+'</div><div class="kpi-sub">'+(minItem?.lbl||'')+'</div></div>'+
+      '<div class="kpi-card up"><div class="kpi-label">Massimo</div><div class="kpi-value">'+fmtEur(selMax)+'</div><div class="kpi-sub">'+(maxItem?.lbl||'')+'</div></div>';
+    document.getElementById('insight-box').innerHTML='<div class="insight-tag">Lettura automatica</div><div class="insight-title">Media selezionata: '+fmtEur(selAvg)+'/h ('+lvLabel+')</div><div class="insight-sub">Range: da <strong>'+fmtEur(selMin)+'</strong> ('+minItem?.lbl+') a <strong>'+fmtEur(selMax)+'</strong> ('+maxItem?.lbl+'). Scostamento medio dalla media nazionale ('+nazFmt+'): <strong>'+(diff>=0?'+':'')+fmtEur(diff)+'/h</strong>.</div>';
+  } else {
+    document.getElementById('kpi-row').innerHTML='<div class="kpi-card"><div class="kpi-label">Media selezione</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">Nessuna selezione</div></div><div class="kpi-card"><div class="kpi-label">vs. media nazionale</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">'+nazFmt+'/h</div></div><div class="kpi-card"><div class="kpi-label">Minimo</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">—</div></div><div class="kpi-card"><div class="kpi-label">Massimo</div><div class="kpi-value" style="color:var(--text-4)">—</div><div class="kpi-sub">—</div></div>';
+    document.getElementById('insight-box').innerHTML='<div class="insight-tag">Dashboard</div><div class="insight-title">Nessun territorio selezionato</div><div class="insight-sub">Media nazionale '+lvLabel+': <strong>'+nazFmt+'</strong>/h.</div>';
+  }
+
+  const container=document.getElementById('chart-container');
+  document.getElementById('chart-meta').textContent=(C.mode==='province'?'Province':'Regioni')+' · '+lvLabel+' · '+items.length+' territori selezionati';
+
+  if(!items.length){
+    if(C.chart){C.chart.destroy();C.chart=null;}
+    container.innerHTML='<div class="state-empty"><div class="state-empty-icon">▤</div><div class="state-empty-text">Usa i filtri a sinistra o cerca una provincia<br>per costruire il grafico comparativo</div></div>';
+    document.getElementById('legend-row').innerHTML='';
+    document.getElementById('print-note').textContent='';
+    return;
+  }
+
+  const sorted=[...items].sort((a,b)=>b.val-a.val);
+  const labels=sorted.map(i=>i.lbl);
+  const bgColors=sorted.map(i=>AREA_FILL[i.a]||'rgba(107,114,128,.7)');
+  const barH=Math.max(20,Math.min(36,Math.floor(560/sorted.length)));
+  const chartH=Math.max(180,sorted.length*barH+60);
+
+  const datasets=[{label:'Costo orario',data:sorted.map(i=>i.val),backgroundColor:bgColors,borderRadius:2,borderSkipped:false,barPercentage:.78,categoryPercentage:.9}];
+  C.activeBms.forEach(k=>{ const bm=BMS.find(b=>b.k===k); if(!bm) return; const v=bmVal(k); if(!v) return; datasets.push({type:'line',label:bm.label,data:Array(sorted.length).fill(v),borderColor:bm.col,borderWidth:1.5,borderDash:bm.dash,pointRadius:0,fill:false}); });
+
+  const legendHtml=[...new Set(sorted.map(i=>i.a))].map(a=>'<div class="legend-item"><div class="legend-swatch" style="background:'+AREA_FILL[a]+'"></div>'+AREA_NAME[a]+'</div>').join('');
+  const bmLegend=[...C.activeBms].map(k=>{const bm=BMS.find(b=>b.k===k);if(!bm) return '';return '<div class="legend-item" style="color:'+bm.col+'"><div class="legend-line"></div>'+bm.label+' ('+fmtEur(bmVal(k))+')</div>';}).join('');
+  document.getElementById('legend-row').innerHTML=legendHtml+bmLegend;
+
+  container.innerHTML='<canvas id="myChart" style="width:100%;height:'+chartH+'px"></canvas>';
+  document.getElementById('print-note').textContent='Elaborazione ANCE Piemonte VdA · Fonte: Ministero del Lavoro';
+
+  if(C.chart){C.chart.destroy();C.chart=null;}
+  C.chart=new Chart(document.getElementById('myChart'),{
+    type:'bar',data:{labels,datasets},
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.type==='line'?ctx.dataset.label+': '+fmtEur(ctx.parsed.x)+'/h':fmtEur(ctx.parsed.x)+'/h'}}},
+      scales:{
+        x:{ticks:{callback:v=>'€'+v.toFixed(0),font:{family:"'IBM Plex Mono',monospace",size:10}},grid:{color:'rgba(0,0,0,.05)'},title:{display:true,text:'€/ora',font:{size:11}}},
+        y:{ticks:{font:{size:11}},grid:{display:false}}
+      }
     }
   });
 }
 
-/* ─── DETAIL: ITEMS HELPERS ──────────────────────────────────────────────── */
-function detGetSortedProvs(){
-  return [...DET_DATA.values()].sort((a,b)=>a.c.localeCompare(b.c,'it'));
+/* ═══ SWITCH VIEW ═══════════════════════════════════════════════════════════ */
+function switchView(v){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
+  if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
 }
 
-/* ─── DETAIL: CONTROLS ───────────────────────────────────────────────────── */
-function detToggle(sig){
-  if(detSel.has(sig)) detSel.delete(sig); else detSel.add(sig);
-  detRenderList(); detRenderChips(); detRenderTable();
-}
+/* ═══ PRINT ══════════════════════════════════════════════════════════════════ */
+function doPrint(){ window.print(); }
 
-function detSelAll(){
-  DET_DATA.forEach((_,sig) => detSel.add(sig));
-  detRenderList(); detRenderChips(); detRenderTable();
-}
-function detSelNone(){
-  detSel.clear();
-  detRenderList(); detRenderChips(); detRenderTable();
-}
+/* ═══ DETAIL: STATE ══════════════════════════════════════════════════════════ */
+function detGetSortedProvs(){ return [...C.DET_DATA.values()].sort((a,b)=>a.c.localeCompare(b.c,'it')); }
+function detToggle(sig){ if(C.detSel.has(sig))C.detSel.delete(sig);else C.detSel.add(sig); detRenderList();detRenderChips();detRenderTable(); }
+function detSelAll(){ C.DET_DATA.forEach((_,sig)=>C.detSel.add(sig)); detRenderList();detRenderChips();detRenderTable(); }
+function detSelNone(){ C.detSel.clear(); detRenderList();detRenderChips();detRenderTable(); }
 function detSelMetro(){
-  const metro = ['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
-  detSel.clear();
-  DET_DATA.forEach((prov, sig) => {
-    if(metro.includes(sig)) detSel.add(sig);
-  });
-  detRenderList(); detRenderChips(); detRenderTable();
+  const metro=['RM','TO','MI','VE','GE','BO','FI','BA','NA','RC'];
+  const metroCities=['ROMA','TORINO','MILANO','VENEZIA','GENOVA','BOLOGNA','FIRENZE','BARI','NAPOLI','REGGIO CALABRIA'];
+  C.detSel.clear();
+  C.DET_DATA.forEach((prov,sig)=>{ if(metro.includes(sig)||metroCities.includes(prov.c.toUpperCase())) C.detSel.add(sig); });
+  detRenderList();detRenderChips();detRenderTable();
 }
-function detSetLv(btn){
-  detLv = btn.dataset.lv;
-  document.querySelectorAll('#det-lv-row .lv-btn').forEach(b=>b.classList.toggle('on', b.dataset.lv===detLv));
-  detRenderTable();
-}
+function detSetLv(btn){ C.detLv=btn.dataset.lv; document.querySelectorAll('#det-lv-row .lv-btn').forEach(b=>b.classList.toggle('on',b.dataset.lv===C.detLv)); detRenderTable(); }
 
-/* ─── DETAIL: SEARCH ─────────────────────────────────────────────────────── */
+/* ═══ DETAIL: SEARCH ══════════════════════════════════════════════════════ */
 function detOnSearch(){
-  const q   = document.getElementById('det-search').value.trim().toLowerCase();
-  const drop = document.getElementById('det-drop');
-  if(q.length < 1){ drop.style.display='none'; return; }
-
-  let html = '';
-  const shownRegs = [];
-
-  // Region group matches
-  detRegMap.forEach((sigle, reg) => {
+  const q=document.getElementById('det-search').value.trim().toLowerCase();
+  const drop=document.getElementById('det-drop');
+  if(q.length<1){drop.style.display='none';return;}
+  let html='';
+  C.detRegMap.forEach((sigle,reg)=>{
     if(!reg.toLowerCase().includes(q)) return;
-    shownRegs.push(reg);
-    const provs = sigle.map(s=>DET_DATA.get(s)).filter(Boolean).sort((a,b)=>a.c.localeCompare(b.c,'it'));
+    const provs=sigle.map(s=>C.DET_DATA.get(s)).filter(Boolean).sort((a,b)=>a.c.localeCompare(b.c,'it'));
     if(!provs.length) return;
-    const areaCode = provs[0].a;
-    const allSel = provs.every(p=>detSel.has(p.p));
-    const regEsc = reg.replace(/'/g,"\\'");
-    html += `
-      <div class="drop-group-row" onclick="detAddGroup('${regEsc}')">
-        <div class="drop-group-icon">${reg.slice(0,2).toUpperCase()}</div>
-        <div class="drop-group-text">
-          <div class="drop-group-name">${reg} — tutte le province</div>
-          <div class="drop-group-sub">${provs.length} province · ${AREA_NAME[areaCode]||''}</div>
-        </div>
-        <div class="drop-group-tag">${allSel ? '✓ selezionate' : '+ aggiungi tutte'}</div>
-      </div>
-      <div class="drop-divider">Province di ${reg}</div>`;
-    provs.slice(0,6).forEach(p => {
-      html += `<div class="drop-item" data-id="${p.p}" onclick="detAddItem(this.dataset.id)">
-        <div class="drop-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
-        <div style="flex:1;min-width:0">
-          <div class="drop-name">${p.c}</div>
-          <div class="drop-sub">${p.p}${detSel.has(p.p)?' · ✓':''}</div>
-        </div>
-      </div>`;
-    });
-    if(provs.length > 6)
-      html += `<div class="drop-divider" style="color:var(--blue-text);cursor:pointer" onclick="detAddGroup('${regEsc}')">+ altre ${provs.length-6} province</div>`;
+    const areaCode=provs[0].a, allSel=provs.every(p=>C.detSel.has(p.p)), regEsc=reg.replace(/'/g,"\\'");
+    html+='<div class="drop-group-row" onclick="detAddGroup(\''+regEsc+'\')"><div class="drop-group-icon">'+reg.slice(0,2).toUpperCase()+'</div><div class="drop-group-text"><div class="drop-group-name">'+reg+' — tutte le province</div><div class="drop-group-sub">'+provs.length+' province · '+AREA_NAME[areaCode]+'</div></div><div class="drop-group-tag">'+(allSel?'✓ selezionate':'+ aggiungi tutte')+'</div></div><div class="drop-divider">Province di '+reg+'</div>';
+    provs.slice(0,6).forEach(p=>{ html+='<div class="drop-item" data-id="'+p.p+'" onclick="detAddItem(this.dataset.id)"><div class="drop-dot" style="background:'+AREA_COL[p.a]+'"></div><div style="flex:1;min-width:0"><div class="drop-name">'+p.c+'</div><div class="drop-sub">'+p.p+(C.detSel.has(p.p)?' · ✓':'')+'</div></div></div>'; });
+    if(provs.length>6) html+='<div class="drop-divider" style="color:var(--blue-text);cursor:pointer" onclick="detAddGroup(\''+regEsc+'\')">+ altre '+(provs.length-6)+' province</div>';
   });
-
-  // Individual province matches (not already shown via group)
-  const hits = detGetSortedProvs().filter(p => {
-    if(!p.c.toLowerCase().includes(q) && !p.r.toLowerCase().includes(q) && !p.p.toLowerCase().includes(q)) return false;
-    if(shownRegs.includes(p.r)) return false;
-    return true;
-  }).slice(0,8);
-
-  if(hits.length){
-    if(html) html += `<div class="drop-divider">Risultati per "${q}"</div>`;
-    hits.forEach(p => {
-      html += `<div class="drop-item" data-id="${p.p}" onclick="detAddItem(this.dataset.id)">
-        <div class="drop-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
-        <div style="flex:1;min-width:0">
-          <div class="drop-name">${p.c}</div>
-          <div class="drop-sub">${p.p} · ${p.r}${detSel.has(p.p)?' · ✓':''}</div>
-        </div>
-      </div>`;
-    });
-  }
-
-  if(!html){ drop.style.display='none'; return; }
-  drop.innerHTML = html;
-  drop.style.display = 'block';
+  const hits=detGetSortedProvs().filter(p=>(p.c.toLowerCase().includes(q)||p.r.toLowerCase().includes(q)||p.p.toLowerCase().includes(q))).slice(0,8);
+  if(hits.length){ if(html) html+='<div class="drop-divider">Risultati per "'+q+'"</div>'; hits.forEach(p=>{ html+='<div class="drop-item" data-id="'+p.p+'" onclick="detAddItem(this.dataset.id)"><div class="drop-dot" style="background:'+AREA_COL[p.a]+'"></div><div style="flex:1;min-width:0"><div class="drop-name">'+p.c+'</div><div class="drop-sub">'+p.p+' · '+p.r+(C.detSel.has(p.p)?' · ✓':'')+'</div></div></div>'; }); }
+  if(!html){drop.style.display='none';return;}
+  drop.innerHTML=html; drop.style.display='block';
 }
+function detAddGroup(reg){ (C.detRegMap.get(reg)||[]).forEach(s=>C.detSel.add(s)); document.getElementById('det-search').value=''; document.getElementById('det-drop').style.display='none'; detRenderList();detRenderChips();detRenderTable(); }
+function detAddItem(sig){ C.detSel.add(sig); document.getElementById('det-search').value=''; document.getElementById('det-drop').style.display='none'; detRenderList();detRenderChips();detRenderTable(); }
 
-function detAddGroup(reg){
-  (detRegMap.get(reg)||[]).forEach(s=>detSel.add(s));
-  document.getElementById('det-search').value = '';
-  document.getElementById('det-drop').style.display = 'none';
-  detRenderList(); detRenderChips(); detRenderTable();
-}
-
-function detAddItem(sig){
-  detSel.add(sig);
-  document.getElementById('det-search').value = '';
-  document.getElementById('det-drop').style.display = 'none';
-  detRenderList(); detRenderChips(); detRenderTable();
-}
-
-/* ─── DETAIL: RENDER LIST ────────────────────────────────────────────────── */
+/* ═══ DETAIL: RENDER LIST ════════════════════════════════════════════════ */
 function detRenderList(){
-  const provs = detGetSortedProvs();
-  document.getElementById('det-list').innerHTML = provs.map(p=>`
-    <div class="list-item${detSel.has(p.p)?' on':''}" data-id="${p.p}" onclick="detToggle(this.dataset.id)">
-      <div class="li-dot" style="background:${AREA_COL[p.a]||'#888'}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="li-name">${p.p} · ${p.c}</div>
-        <div class="li-sub">${p.r}</div>
-      </div>
-    </div>`).join('') || '<div style="padding:12px;text-align:center;color:var(--text-4);font-size:11px">Caricamento…</div>';
-  document.getElementById('det-count').textContent = `${detSel.size} ${detSel.size===1?'provincia selezionata':'province selezionate'}`;
+  document.getElementById('det-list').innerHTML=detGetSortedProvs().map(p=>'<div class="list-item'+(C.detSel.has(p.p)?' on':'')+'" data-id="'+p.p+'" onclick="detToggle(this.dataset.id)"><div class="li-dot" style="background:'+AREA_COL[p.a]+'"></div><div style="flex:1;min-width:0"><div class="li-name">'+p.p+' · '+p.c+'</div><div class="li-sub">'+p.r+'</div></div></div>').join('')||'<div style="padding:12px;text-align:center;color:var(--text-4);font-size:11px">Caricamento…</div>';
+  document.getElementById('det-count').textContent=C.detSel.size+' '+(C.detSel.size===1?'provincia selezionata':'province selezionate');
 }
 
-/* ─── DETAIL: RENDER CHIPS ───────────────────────────────────────────────── */
+/* ═══ DETAIL: RENDER CHIPS ═══════════════════════════════════════════════ */
 function detRenderChips(){
-  const el = document.getElementById('det-chips');
-  const provs = detGetSortedProvs().filter(p=>detSel.has(p.p));
-  if(!provs.length){
-    el.innerHTML = '<span class="chips-empty">Nessuna provincia selezionata — usa la ricerca o la lista</span>';
-    return;
-  }
-  el.innerHTML = provs.map(p=>`
-    <span class="chip ${p.a||''}" data-id="${p.p}" onclick="detToggle(this.dataset.id)" title="Rimuovi ${p.c}">
-      ${p.p}<span class="x"> ×</span>
-    </span>`).join('');
+  const el=document.getElementById('det-chips');
+  const provs=detGetSortedProvs().filter(p=>C.detSel.has(p.p));
+  if(!provs.length){el.innerHTML='<span class="chips-empty">Nessuna provincia selezionata — usa la ricerca o la lista</span>';return;}
+  el.innerHTML=provs.map(p=>'<span class="chip '+(p.a||'')+'" data-id="'+p.p+'" onclick="detToggle(this.dataset.id)" title="Rimuovi '+p.c+'">'+p.p+'<span class="x"> ×</span></span>').join('');
 }
 
-/* ─── DETAIL: RENDER TABLE ───────────────────────────────────────────────── */
+/* ═══ DETAIL: RENDER TABLE ════════════════════════════════════════════════ */
 function detRenderTable(){
-  const container = document.getElementById('det-content');
-
-  const provs = detGetSortedProvs().filter(p=>detSel.has(p.p));
-
-  if(!provs.length){
-    container.innerHTML = `<div class="det-empty">
-      <div class="det-empty-icon">▤</div>
-      <div class="det-empty-text">Seleziona province dalla lista o cerca una regione<br>per visualizzare il confronto voce per voce</div>
-    </div>`;
-    return;
-  }
-
-  const lvKey = detLv;
-  const lvIdx = LVS.indexOf(lvKey);
-  const lvLabel = LV_LABELS[lvIdx];
-
-  // Precompute per-row min/max across selected provinces (for color coding)
-  const rowStats = {};
-  DET_ROWS.forEach(row => {
-    if(row.type !== 'data' && row.type !== 'subtotal' && row.type !== 'total') return;
-    const vals = provs.map(p => p.data[row.key]?.[lvKey] || 0).filter(v=>v>0);
-    if(vals.length >= 2){
-      rowStats[row.key] = { min: Math.min(...vals), max: Math.max(...vals) };
-    }
+  const container=document.getElementById('det-content');
+  const provs=detGetSortedProvs().filter(p=>C.detSel.has(p.p));
+  if(!provs.length){ container.innerHTML='<div class="det-empty"><div class="det-empty-icon">▤</div><div class="det-empty-text">Seleziona province dalla lista o cerca una regione<br>per visualizzare il confronto voce per voce</div></div>'; return; }
+  const lvKey=C.detLv, lvIdx=C.LVS.indexOf(lvKey), lvLabel=C.LV_LBL[lvIdx]||lvKey;
+  const rowStats={};
+  C.DET_ROWS.forEach(row=>{
+    if(row.type!=='data'&&row.type!=='subtotal'&&row.type!=='total') return;
+    const vals=provs.map(p=>p.data[row.key]?.[lvKey]||0).filter(v=>v>0);
+    if(vals.length>=2) rowStats[row.key]={min:Math.min(...vals),max:Math.max(...vals)};
   });
-
-  // Build table HTML
-  let thead = `<thead><tr>
-    <th><div class="det-col-sig">Voce di costo</div><div class="det-col-city">${lvLabel}</div></th>`;
-
-  provs.forEach(p => {
-    thead += `<th>
-      <div class="det-col-sig">${p.p}</div>
-      <div class="det-col-city">${p.c}</div>
-      <div class="det-col-area ${p.a||''}">${AREA_NAME[p.a]||p.a||''}</div>
-    </th>`;
-  });
-  thead += '</tr></thead>';
-
-  let tbody = '<tbody>';
-  DET_ROWS.forEach(row => {
-    const { key, label, type, cassaNote } = row;
-    const isSection  = type === 'section';
-    const isSubtotal = type === 'subtotal';
-    const isTotal    = type === 'total';
-    const isData     = type === 'data';
-
-    const trClass = `det-row-${type}`;
-
-    if(isSection){
-      const emptyCols = provs.map(()=>'<td></td>').join('');
-      tbody += `<tr class="${trClass}"><td>${label}</td>${emptyCols}</tr>`;
-      return;
-    }
-
-    let cells = '';
-    provs.forEach(p => {
-      const entry = p.data[key];
-      const val   = entry?.[lvKey];
-      const stats = rowStats[key];
-
-      let cellCls = 'det-cell';
-      if(isData && stats && val && val > 0){
-        if(val === stats.max && val > stats.min) cellCls += ' det-cell-max';
-        else if(val === stats.min && val < stats.max) cellCls += ' det-cell-min';
-      }
-
-      let inner = '';
-      if(val && val > 0){
-        inner = val.toFixed(2);
-        if(cassaNote && p.cassaPercent){
-          inner += `<div class="det-cassa-pct">${p.cassaPercent}</div>`;
-        }
-      } else {
-        inner = '<span style="color:var(--text-4)">—</span>';
-      }
-
-      cells += `<td><div class="${cellCls}">${inner}</div></td>`;
+  let thead='<thead><tr><th><div class="det-col-sig">Voce di costo</div><div class="det-col-city">'+lvLabel+'</div></th>';
+  provs.forEach(p=>{ thead+='<th><div class="det-col-sig">'+p.p+'</div><div class="det-col-city">'+p.c+'</div><div class="det-col-area '+(p.a||'')+'">'+AREA_NAME[p.a]+'</div></th>'; });
+  thead+='</tr></thead>';
+  let tbody='<tbody>';
+  C.DET_ROWS.forEach(row=>{
+    const {key,label,type,cassaNote}=row;
+    if(type==='section'){ tbody+='<tr class="det-row-section"><td>'+label+'</td>'+provs.map(()=>'<td></td>').join('')+'</tr>'; return; }
+    let cells='';
+    provs.forEach(p=>{
+      const entry=p.data[key], val=entry?.[lvKey], stats=rowStats[key];
+      let cc='det-cell';
+      if(type==='data'&&stats&&val&&val>0){ if(val===stats.max&&val>stats.min) cc+=' det-cell-max'; else if(val===stats.min&&val<stats.max) cc+=' det-cell-min'; }
+      let inner='';
+      if(val&&val>0){ inner=val.toFixed(2); if(cassaNote&&p.cassaPercent) inner+='<div class="det-cassa-pct">'+p.cassaPercent+'</div>'; }
+      else inner='<span style="color:var(--text-4)">—</span>';
+      cells+='<td><div class="'+cc+'">'+inner+'</div></td>';
     });
-
-    tbody += `<tr class="${trClass}"><td>${label}</td>${cells}</tr>`;
+    tbody+='<tr class="det-row-'+type+'"><td>'+label+'</td>'+cells+'</tr>';
   });
-  tbody += '</tbody>';
-
-  container.innerHTML = `<div class="det-table-outer"><table class="det-table">${thead}${tbody}</table></div>`;
+  tbody+='</tbody>';
+  container.innerHTML='<div class="det-table-outer"><table class="det-table">'+thead+tbody+'</table></div>';
 }
-/* ─── MODAL ISTRUZIONI ───────────────────────────────────────────────────── */
+
+/* ═══ MODAL ════════════════════════════════════════════════════════════════ */
 function openHelp(){ document.getElementById('help-modal').classList.add('open'); document.body.style.overflow='hidden'; }
 function closeHelp(){ document.getElementById('help-modal').classList.remove('open'); document.body.style.overflow=''; }
 function handleModalClick(e){ if(e.target===document.getElementById('help-modal')) closeHelp(); }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeHelp(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
 
-/* ─── INIT ───────────────────────────────────────────────────────────────── */
+/* ═══ INIT ═════════════════════════════════════════════════════════════════ */
+renderLvBtns();
 loadData();
-
-
 </script>
 </body>
 </html>
