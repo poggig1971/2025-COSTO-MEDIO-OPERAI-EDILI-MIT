@@ -1067,7 +1067,9 @@ function calcolaNuovoCMO(sig, lvKey, delta_minimo) {
   const A_no_evr_new = round2(minimo_new + conting + edr + its);
 
   // --- SEZIONE B ---
-  const b1 = round2((A_no_evr_new) * 8 * 12 / 1543);           // 12 festività
+  const annoRif = new Date().getFullYear();
+  const nFest = annoRif >= 2026 ? 13 : 12; // Dal 2026 entra S. Francesco (4 ottobre)
+  const b1 = round2((A_no_evr_new) * 8 * nFest / 1543);
   const b2 = round2((A_no_evr_new) * 8 / 1543);                 // 4 novembre
   const b3 = round2(((A_no_evr_new) + b1) * 0.0495);            // riposi annui
   const b4 = round2(((A_no_evr_new) + b1) * 0.1850);            // CE-GNF
