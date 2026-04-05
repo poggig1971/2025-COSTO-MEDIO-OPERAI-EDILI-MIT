@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suite Negoziale — Piemonte VdA</title>
+<title>Suite Negoziale ANCE — Piemonte VdA</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -200,7 +200,7 @@ tr:hover td{background:var(--g50)}
       </div>
       <div class="hdr-div"></div>
       <div>
-        <div class="hdr-title">Suite Negoziale</div>
+        <div class="hdr-title">Suite Negoziale ANCE</div>
         <div class="hdr-sub">CCNL Edilizia Industria · Piemonte e Valle d'Aosta</div>
       </div>
     </div>
@@ -219,6 +219,7 @@ tr:hover td{background:var(--g50)}
     <div class="nav-tab active" onclick="showPanel('nazionale',this)"><span class="nav-dot dot-blu"></span>Nazionale</div>
     <div class="nav-tab" onclick="showPanel('provinciale',this)"><span class="nav-dot dot-green"></span>Provinciale</div>
     <div class="nav-tab" onclick="showPanel('benchmark',this)"><span class="nav-dot dot-gray"></span>Benchmark</div>
+    <div class="nav-tab" onclick="showPanel('analisi',this)" id="nt-analisi"><span class="nav-dot dot-green"></span>Analisi Integrata</div>
     <div class="nav-tab" onclick="showPanel('scenari',this)" id="nt-scenari" style="display:none"><span class="nav-dot dot-blu"></span>Scenari</div>
   </nav>
 
@@ -390,6 +391,63 @@ tr:hover td{background:var(--g50)}
       </div>
     </div>
 
+    <!-- ANALISI INTEGRATA -->
+    <div class="panel" id="panel-analisi">
+      <div class="pg-hdr">
+        <div class="pg-title-wrap">
+          <div class="pg-accent accent-tiffany"></div>
+          <div><div class="pg-title">Analisi Integrata per Voce</div><div class="pg-sub">Dati ministeriali (MIT) + elementi CIPL provinciali · Operai Industria</div></div>
+        </div>
+        <div id="analisi-loading" style="font-size:12px;color:var(--g500)"></div>
+      </div>
+
+      <div style="display:flex;gap:18px;align-items:flex-start">
+
+        <!-- SIDEBAR ANALISI -->
+        <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+
+          <div class="card" style="padding:16px">
+            <div class="card-label" style="margin-bottom:8px">Livello operai</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <button class="btn btn-primary btn-sm" id="alv-1" onclick="setAnalisiLv(1)">1° liv.</button>
+              <button class="btn btn-ghost btn-sm" id="alv-2" onclick="setAnalisiLv(2)">2° liv.</button>
+              <button class="btn btn-ghost btn-sm" id="alv-3" onclick="setAnalisiLv(3)">3° liv.</button>
+              <button class="btn btn-ghost btn-sm" id="alv-4" onclick="setAnalisiLv(4)">4° liv.</button>
+            </div>
+          </div>
+
+          <div class="card" style="padding:16px">
+            <div class="card-label" style="margin-bottom:8px">Province in confronto</div>
+            <div style="font-size:11px;color:var(--g500);margin-bottom:8px">Prima = MIT di riferimento</div>
+            <div id="analisi-prov-list" style="display:flex;flex-direction:column;gap:4px"></div>
+            <div style="margin-top:10px">
+              <select id="analisi-add-sel" style="width:100%;padding:7px 8px;border:1.5px solid var(--g200);border-radius:6px;font-family:var(--font);font-size:12px;color:var(--g900);outline:none;margin-bottom:6px">
+                <option value="">+ Aggiungi provincia…</option>
+              </select>
+              <button class="btn btn-tiffany btn-sm" style="width:100%" onclick="analisiAddProv()">Aggiungi</button>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px;font-size:11px;color:var(--g500);line-height:1.6">
+            <div style="font-weight:600;color:var(--g700);margin-bottom:6px">Legenda</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <div style="width:12px;height:12px;background:#EBF0F8;border:1px solid #1E3A5F;border-radius:2px;flex-shrink:0"></div>Voci nazionali (MIT)
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:12px;height:12px;background:#E0F7F6;border:1px solid #0ABAB5;border-radius:2px;flex-shrink:0"></div>Voci provinciali (CIPL)
+            </div>
+          </div>
+        </div>
+
+        <!-- TABELLA PRINCIPALE -->
+        <div style="flex:1;min-width:0">
+          <div id="analisi-content">
+            <div class="loading"><div class="spinner tiffany"></div>Caricamento dati ministeriali…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -487,6 +545,7 @@ async function startApp() {
   document.getElementById('user-rl').textContent = S.ruolo;
   if(S.ruolo==='ADMIN') document.getElementById('nt-scenari').style.display='flex';
   await Promise.all([loadNaz(), loadProv(), loadCMO()]);
+  await loadDettagli();
   calcolaScenario();
 }
 
@@ -498,7 +557,7 @@ function showPanel(id, el) {
   document.querySelectorAll('.nav-tab').forEach(t=>{t.classList.remove('active','green');});
   document.getElementById('panel-'+id).classList.add('active');
   el.classList.add('active');
-  if(id==='provinciale'||id==='benchmark') el.classList.add('green');
+  if(id==='provinciale'||id==='benchmark'||id==='analisi') el.classList.add('green');
   if(id==='benchmark') renderBenchmark();
 }
 
@@ -879,7 +938,382 @@ function aggiornaCascata() {
   card.style.display='block';
 }
 
-async function salvaScenario() {
+// ══════════════════════════════════════════════════
+// ANALISI INTEGRATA
+// ══════════════════════════════════════════════════
+const DET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGVJo0aTdCTsKA7WuH245_Pf4x9AcI_Fl1F2U7SPlWpeYcOixZjSS5qezn3b8XjFQ42h6r_xqe4-hN/pub?gid=406350821&single=true&output=csv';
+
+const DET_ROWS = [
+  {key:'hdr_A',    label:'A — Elementi retributivi diretti',                type:'section'},
+  {key:'minimo',   label:'Minimo',                                          type:'data'},
+  {key:'conting',  label:'Ind. contingenza',                                type:'data'},
+  {key:'edr',      label:'E.D.R. — ex prot.23/7/1993',                     type:'data'},
+  {key:'evr',      label:'Elemento Variabile della Retribuzione (1)',       type:'data'},
+  {key:'its',      label:'Indennità di settore ITS',                        type:'data'},
+  {key:'tot_a',    label:'TOTALE "A"',                                      type:'subtotal'},
+  {key:'hdr_B',    label:'B — Oneri aggiuntivi',                           type:'section'},
+  {key:'fest12',   label:'Retribuzione 12 festività',                       type:'data'},
+  {key:'nov4',     label:'Retribuzione 4 novembre',                         type:'data'},
+  {key:'riposi',   label:'Riposi annui (4,95%)',                            type:'data'},
+  {key:'gnf',      label:'Accantonamento CE per GNF (18,50%)',              type:'data'},
+  {key:'trasp',    label:'Indennità di trasporto',                          type:'data'},
+  {key:'assemb',   label:'Assemblee, diritto allo studio e formazione',     type:'data'},
+  {key:'mal',      label:'Accantonamento CE per malattia e infortunio',     type:'data'},
+  {key:'finc',     label:"Fondo incentivo all'occupazione (0,10%)",         type:'data'},
+  {key:'tot_b',    label:'TOTALE "B"',                                      type:'subtotal'},
+  {key:'hdr_C',    label:'C — Oneri previdenziali e assistenziali',        type:'section'},
+  {key:'inps',     label:'INPS (34,28%) — 15-50 dipendenti',               type:'data'},
+  {key:'inail',    label:'INAIL (11,00%)',                                  type:'data'},
+  {key:'cassa',    label:'Contributi Cassa Edile',                          type:'data'},
+  {key:'magg',     label:'Maggiorazione contrib. INPS/INAIL su CE',         type:'data'},
+  {key:'tot_c',    label:'TOTALE "C"',                                      type:'subtotal'},
+  {key:'mensa',    label:'Indennità sostitutiva di mensa',                  type:'data'},
+  {key:'tfr',      label:'Trattamento fine rapporto',                       type:'data'},
+  {key:'tfr_riv',  label:'Rivalutazione T.F.R. (2,320017%)',                type:'data'},
+  {key:'oneri',    label:'Oneri vari: trasferte, prev.compl., disagio 50%', type:'data'},
+  {key:'contcontr',label:'Contributo contrattuale prev. complementare',     type:'data'},
+  {key:'sanedil',  label:'Fondo Sanitario (Sanedil)',                       type:'data'},
+  {key:'cmo',      label:'COSTO MEDIO ORARIO (MIT)',                        type:'total'},
+];
+
+// Voci provinciali CIPL
+const CIPL_ROWS = [
+  {key:'cipl_evr',   label:'EVR (% sui minimi nazionali)',   type:'cipl'},
+  {key:'cipl_mensa', label:'Indennità mensa operai (€/ora)', type:'cipl'},
+  {key:'cipl_rep',   label:'Reperibilità (€/giorno)',        type:'cipl'},
+  {key:'cipl_tot',   label:'TOTALE ELEMENTI PROVINCIALI',    type:'cipl_tot'},
+  {key:'cmo_reale',  label:'COSTO ORARIO TOTALE REALE',      type:'total_reale'},
+];
+
+let DET_DATA = new Map();  // sigla → {data: {key → {lv1..lv4}}, regione, city}
+let DET_LOADED = false;
+let ANALISI_LV = 1;
+let ANALISI_PROVS = [];  // array di sigle province selezionate
+
+function normDescDet(raw) {
+  const d = raw.trim().toLowerCase().replace(/\s+/g,' ');
+  if(d==='minimo') return 'minimo';
+  if(d.startsWith('ind. contingenza')) return 'conting';
+  if(d.startsWith('e.d.r.')) return 'edr';
+  if(d.startsWith('elemento variabile')) return 'evr';
+  if(d.startsWith('indennit')&&d.includes('settore')) return 'its';
+  if(d.includes('totale')&&d.includes('"a"')) return 'tot_a';
+  if(d.startsWith('retribuzione 12')) return 'fest12';
+  if(d.startsWith('retribuzione 4 nov')) return 'nov4';
+  if(d.startsWith('riposi annui')) return 'riposi';
+  if(d.startsWith('accantonamento cassa edile per gnf')||d.startsWith('accantonamento cassa edile  per gnf')) return 'gnf';
+  if(d.startsWith('indennit')&&d.includes('trasporto')) return 'trasp';
+  if(d.startsWith('retribuzione assemblee')) return 'assemb';
+  if(d.startsWith('accantonamento cassa edile per malattia')||d.startsWith('accantonamento cassa edile  per malattia')) return 'mal';
+  if(d.startsWith('fondo incentivo')) return 'finc';
+  if(d.includes('totale')&&d.includes('"b"')) return 'tot_b';
+  if(d.startsWith('inps')) return 'inps';
+  if(d.startsWith('inail')) return 'inail';
+  if(d.startsWith('contributi cassa edile')) return 'cassa';
+  if(d.startsWith('maggiorazione contributiva')) return 'magg';
+  if(d.includes('totale')&&d.includes('"c"')) return 'tot_c';
+  if(d.startsWith('indennit')&&d.includes('mensa')) return 'mensa';
+  if(d.startsWith('trattamento fine rapporto')) return 'tfr';
+  if(d.startsWith('rivalutazione t.f.r.')||d.startsWith('rivalutazione tfr')) return 'tfr_riv';
+  if(d.startsWith('oneri vari')) return 'oneri';
+  if(d.startsWith('contributo contrattuale')) return 'contcontr';
+  if(d.startsWith('fondo sanitario')) return 'sanedil';
+  if(d.startsWith('costo medio orario')) return 'cmo';
+  return null;
+}
+
+function loadDettagli() {
+  document.getElementById('analisi-loading').textContent = 'Caricamento dati MIT…';
+  return new Promise(resolve => {
+    Papa.parse(DET_URL, {
+      download:true, header:false, skipEmptyLines:true,
+      complete({data}) {
+        if(!data?.length){resolve();return;}
+        const byProv = new Map();
+        data.forEach(row => {
+          const sig = (row[1]||'').trim();
+          if(!sig||sig==='Sigla') return;
+          if(!byProv.has(sig)) byProv.set(sig,{r:(row[0]||'').trim(),c:(row[2]||'').trim(),rows:[]});
+          byProv.get(sig).rows.push(row);
+        });
+        DET_DATA.clear();
+        byProv.forEach((prov,sig) => {
+          const pd = {};
+          prov.rows.forEach(row => {
+            const k = normDescDet((row[3]||'').trim());
+            if(!k) return;
+            pd[k] = {lv1:pNum(row[4]),lv2:pNum(row[5]),lv3:pNum(row[6]),lv4:pNum(row[7])};
+          });
+          DET_DATA.set(sig, {r:prov.r, c:prov.c, sig, data:pd});
+        });
+        DET_LOADED = true;
+        document.getElementById('analisi-loading').textContent = DET_DATA.size+' province caricate';
+        // Popola select di aggiunta
+        const sel = document.getElementById('analisi-add-sel');
+        sel.innerHTML = '<option value="">+ Aggiungi provincia…</option>';
+        [...DET_DATA.keys()].sort().forEach(sig => {
+          const d = DET_DATA.get(sig);
+          sel.innerHTML += `<option value="${sig}">${sig} · ${d.c}</option>`;
+        });
+        // Selezione iniziale: prima trova la propria provincia CIPL, poi Alessandria come default
+        const myProv = D_PROV.find(p => p.STATO==='FIRMATO');
+        const defSig = myProv ? [...DET_DATA.keys()].find(k=>DET_DATA.get(k).c.toUpperCase()===myProv.PROVINCIA.toUpperCase())||'AL' : 'AL';
+        ANALISI_PROVS = [defSig];
+        buildAnalisiProvList();
+        renderAnalisi();
+        resolve();
+      },
+      error(){resolve();}
+    });
+  });
+}
+
+function analisiAddProv() {
+  const sel = document.getElementById('analisi-add-sel');
+  const sig = sel.value;
+  if(!sig||ANALISI_PROVS.includes(sig)) return;
+  ANALISI_PROVS.push(sig);
+  sel.value = '';
+  buildAnalisiProvList();
+  renderAnalisi();
+}
+
+function analisiRemoveProv(sig) {
+  ANALISI_PROVS = ANALISI_PROVS.filter(s=>s!==sig);
+  buildAnalisiProvList();
+  renderAnalisi();
+}
+
+function buildAnalisiProvList() {
+  const el = document.getElementById('analisi-prov-list');
+  if(!el) return;
+  el.innerHTML = ANALISI_PROVS.map((sig,i) => {
+    const d = DET_DATA.get(sig);
+    const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+    const badge = cipl?.STATO==='FIRMATO'
+      ? `<span style="font-size:9px;font-weight:700;background:#E6F4ED;color:#1B7A47;padding:1px 5px;border-radius:8px">FIRMATO</span>`
+      : cipl?.STATO==='BOZZA'
+      ? `<span style="font-size:9px;font-weight:700;background:#FEF3C7;color:#B45309;padding:1px 5px;border-radius:8px">BOZZA</span>`
+      : `<span style="font-size:9px;color:var(--g500)">no CIPL</span>`;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:${i===0?'var(--blu-pale)':'var(--g100)'};border-radius:6px;font-size:12px">
+      <span style="font-weight:600;color:var(--blu);min-width:28px">${sig}</span>
+      ${badge}
+      ${i===0?'<span style="font-size:9px;color:var(--g500);margin-left:auto">MIT ref.</span>':`<button onclick="analisiRemoveProv('${sig}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--g500);font-size:14px;line-height:1;padding:0">×</button>`}
+    </div>`;
+  }).join('');
+}
+
+function setAnalisiLv(n) {
+  ANALISI_LV = n;
+  for(let i=1;i<=4;i++) {
+    const btn = document.getElementById(`alv-${i}`);
+    if(!btn) continue;
+    btn.className = i===n ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  }
+  renderAnalisi();
+}
+
+function renderAnalisi() {
+  const container = document.getElementById('analisi-content');
+  if(!container) return;
+  if(!DET_LOADED||ANALISI_PROVS.length===0) {
+    container.innerHTML='<div class="loading"><div class="spinner tiffany"></div>Seleziona una provincia…</div>';
+    return;
+  }
+
+  const lvKey = `lv${ANALISI_LV}`;
+  const lvLabel = {lv1:'1° livello',lv2:'2° livello',lv3:'3° livello',lv4:'4° livello'}[lvKey];
+
+  // Calcola massimi/minimi per evidenziazione (solo righe data nazionali, ≥2 province)
+  const stats = {};
+  if(ANALISI_PROVS.length >= 2) {
+    DET_ROWS.filter(r=>r.type==='data').forEach(row => {
+      const vals = ANALISI_PROVS.map(sig=>{
+        const d=DET_DATA.get(sig);
+        return d?.data[row.key]?.[lvKey]||0;
+      }).filter(v=>v>0);
+      if(vals.length>=2) stats[row.key]={min:Math.min(...vals),max:Math.max(...vals)};
+    });
+  }
+
+  // Build header
+  let thead = `<thead><tr>
+    <th style="background:var(--blu);color:white;text-align:left;padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;min-width:230px;position:sticky;left:0;z-index:2">Voce di costo — ${lvLabel}</th>`;
+
+  ANALISI_PROVS.forEach((sig,i) => {
+    const d = DET_DATA.get(sig);
+    const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+    const statoHTML = cipl?.STATO==='FIRMATO'
+      ? `<span style="font-size:8px;font-weight:700;background:rgba(27,122,71,.25);color:#A8F0C6;padding:1px 5px;border-radius:8px;margin-left:4px">FIRMATO</span>`
+      : cipl?.STATO==='BOZZA'
+      ? `<span style="font-size:8px;font-weight:700;background:rgba(180,83,9,.25);color:#FDE68A;padding:1px 5px;border-radius:8px;margin-left:4px">BOZZA</span>`
+      : `<span style="font-size:8px;color:rgba(255,255,255,.4);margin-left:4px">no CIPL</span>`;
+    const mitLabel = i===0?`<div style="font-size:8px;opacity:.6;margin-top:2px">MIT riferimento</div>`:'';
+    thead += `<th style="background:${i===0?'#142B47':'var(--blu)'};color:white;text-align:right;padding:9px 12px;min-width:95px;font-size:11px;font-weight:600">
+      ${sig}${statoHTML}<div style="font-size:10px;font-weight:400;opacity:.75">${d?.c||''}</div>${mitLabel}
+    </th>`;
+  });
+  thead += '</tr></thead>';
+
+  // Build body rows
+  let tbody = '<tbody>';
+
+  // Stile celle per tipo
+  const S_NAZ_SEC = `background:#D6E2F5;color:#1E3A5F;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:7px 12px;font-family:var(--font)`;
+  const S_NAZ = `background:#F4F7FC`;
+  const S_NAZ_SUB = `background:#D6E2F5;font-weight:700;font-family:var(--font)`;
+  const S_NAZ_TOT = `background:#1E3A5F;color:white;font-weight:700;font-size:13px;font-family:var(--font)`;
+  const S_PRV_SEC = `background:#C2F0ED;color:#0ABAB5;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:7px 12px;font-family:var(--font);border-top:2px solid #0ABAB5`;
+  const S_PRV = `background:#EBF9F8`;
+  const S_PRV_TOT = `background:#0ABAB5;color:white;font-weight:700;font-family:var(--font)`;
+  const S_FINALE = `background:#0D3D5B;color:white;font-weight:700;font-size:14px;font-family:var(--font)`;
+
+  DET_ROWS.forEach(row => {
+    if(row.type==='section') {
+      tbody += `<tr><td colspan="${ANALISI_PROVS.length+1}" style="${S_NAZ_SEC}">🔵 ${row.label}</td></tr>`;
+      return;
+    }
+
+    const rowStyle = row.type==='total' ? S_NAZ_TOT : row.type==='subtotal' ? S_NAZ_SUB : S_NAZ;
+    const firstTd = `<td style="${rowStyle};padding:7px 12px;border-bottom:1px solid var(--g100);font-family:var(--font);position:sticky;left:0;z-index:1">${row.label}</td>`;
+
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const val = d?.data[row.key]?.[lvKey]||0;
+      const s = stats[row.key];
+      let bg = '';
+      if(row.type==='data' && s && val>0) {
+        if(val===s.max && val>s.min) bg='background:#FEF2F2;';
+        else if(val===s.min && val<s.max) bg='background:#F0FDF4;';
+      }
+      const cellStyle = row.type==='total'?S_NAZ_TOT:row.type==='subtotal'?S_NAZ_SUB:S_NAZ;
+      const display = val>0 ? val.toFixed(2) : `<span style="color:var(--g400)">—</span>`;
+      cells += `<td style="${cellStyle};${bg}padding:7px 12px;border-bottom:1px solid var(--g100);text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+
+    tbody += `<tr>${firstTd}${cells}</tr>`;
+  });
+
+  // Sezione provinciale CIPL
+  tbody += `<tr><td colspan="${ANALISI_PROVS.length+1}" style="${S_PRV_SEC}">🟦 Elementi integrativi provinciali (CIPL)</td></tr>`;
+
+  // EVR /h
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const minBase = d?.data['minimo']?.[lvKey]||0;
+      const evr_perc = cipl?.EVR_PERC ? parseFloat(cipl.EVR_PERC) : 0;
+      const evr_h = evr_perc&&minBase ? round2((minBase*evr_perc/100)*12/52/40) : 0;
+      // calcolo EVR mensile / 173
+      const evr_m = evr_perc&&minBase ? round2(minBase*(evr_perc/100)) : 0;
+      const evr_ora = evr_m ? round2(evr_m/173) : 0;
+      const display = cipl?.STATO==='FIRMATO'&&evr_ora>0
+        ? `<span style="color:#0ABAB5;font-weight:600">+${evr_ora.toFixed(2)}</span>`
+        : cipl?.STATO==='BOZZA' ? `<span style="color:var(--g400);font-size:11px">bozza</span>`
+        : `<span style="color:var(--g400)">—</span>`;
+      cells += `<td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+    tbody += `<tr><td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;font-family:var(--font);position:sticky;left:0;z-index:1">EVR (€/ora — calc. su minimo)</td>${cells}</tr>`;
+  }
+
+  // Mensa /h
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const mensa_ora = cipl?.MENSA_OPE_ORA ? parseFloat(cipl.MENSA_OPE_ORA) : 0;
+      const display = cipl?.STATO==='FIRMATO'&&mensa_ora>0
+        ? `<span style="color:#0ABAB5;font-weight:600">+${mensa_ora.toFixed(2)}</span>`
+        : cipl?.STATO==='BOZZA' ? `<span style="color:var(--g400);font-size:11px">bozza</span>`
+        : `<span style="color:var(--g400)">—</span>`;
+      cells += `<td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+    tbody += `<tr><td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;font-family:var(--font);position:sticky;left:0;z-index:1">Indennità mensa operai (€/ora)</td>${cells}</tr>`;
+  }
+
+  // Reperibilità
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const rep = cipl?.REP_GIORN ? parseFloat(cipl.REP_GIORN) : 0;
+      const display = cipl?.STATO==='FIRMATO'&&rep>0
+        ? `<span style="color:#0ABAB5;font-weight:600">${rep.toFixed(2)}/g</span>`
+        : cipl?.STATO==='BOZZA' ? `<span style="color:var(--g400);font-size:11px">bozza</span>`
+        : `<span style="color:var(--g400)">—</span>`;
+      cells += `<td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+    tbody += `<tr><td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;font-family:var(--font);position:sticky;left:0;z-index:1">Reperibilità (€/giorno)</td>${cells}</tr>`;
+  }
+
+  // Una tantum
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const tant = cipl?.UNA_TANTUM ? parseFloat(cipl.UNA_TANTUM) : 0;
+      const display = cipl?.STATO==='FIRMATO'&&tant>0
+        ? `<span style="color:#0ABAB5;font-weight:600">${tant.toFixed(0)} lordi</span>`
+        : cipl?.STATO==='BOZZA' ? `<span style="color:var(--g400);font-size:11px">bozza</span>`
+        : `<span style="color:var(--g400)">—</span>`;
+      cells += `<td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+    tbody += `<tr><td style="${S_PRV};padding:7px 12px;border-bottom:1px solid #C2F0ED;font-family:var(--font);position:sticky;left:0;z-index:1">Una tantum (€ lordi — arretrato)</td>${cells}</tr>`;
+  }
+
+  // Totale provinciale
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const minBase = d?.data['minimo']?.[lvKey]||0;
+      const evr_m = cipl?.EVR_PERC && minBase ? round2(minBase*(parseFloat(cipl.EVR_PERC)/100)) : 0;
+      const evr_h = evr_m ? round2(evr_m/173) : 0;
+      const mensa_h = cipl?.MENSA_OPE_ORA ? parseFloat(cipl.MENSA_OPE_ORA) : 0;
+      const tot = round2(evr_h + mensa_h);
+      const display = cipl?.STATO==='FIRMATO' ? `+${tot.toFixed(2)}/h` : `<span style="opacity:.6">—</span>`;
+      cells += `<td style="${S_PRV_TOT};padding:7px 12px;border-bottom:1px solid #C2F0ED;text-align:right;font-family:var(--mono);font-size:12px">${display}</td>`;
+    });
+    tbody += `<tr><td style="${S_PRV_TOT};padding:7px 12px;font-family:var(--font);position:sticky;left:0;z-index:1">TOT. ELEMENTI PROVINCIALI (€/ora)</td>${cells}</tr>`;
+  }
+
+  // RIGA FINALE — Costo orario totale reale
+  {
+    let cells = '';
+    ANALISI_PROVS.forEach((sig,i) => {
+      const d = DET_DATA.get(sig);
+      const cipl = D_PROV.find(p=>p.PROVINCIA?.toUpperCase()===d?.c?.toUpperCase()||p.PROVINCIA===sig);
+      const cmo_h = d?.data['cmo']?.[lvKey]||0;
+      const minBase = d?.data['minimo']?.[lvKey]||0;
+      const evr_m = cipl?.EVR_PERC && minBase ? round2(minBase*(parseFloat(cipl.EVR_PERC)/100)) : 0;
+      const evr_h = evr_m ? round2(evr_m/173) : 0;
+      const mensa_h = cipl?.MENSA_OPE_ORA ? parseFloat(cipl.MENSA_OPE_ORA) : 0;
+      const prov_tot = cipl?.STATO==='FIRMATO' ? round2(evr_h+mensa_h) : 0;
+      const reale = round2(cmo_h + prov_tot);
+      cells += `<td style="${S_FINALE};padding:10px 12px;text-align:right;font-family:var(--mono);font-size:14px">€ ${reale.toFixed(2)}</td>`;
+    });
+    tbody += `<tr><td style="${S_FINALE};padding:10px 12px;font-family:var(--font);position:sticky;left:0;z-index:1">COSTO ORARIO TOTALE REALE</td>${cells}</tr>`;
+  }
+
+  tbody += '</tbody>';
+
+  container.innerHTML = `
+    <div style="overflow-x:auto;border:1px solid var(--g200);border-radius:10px;box-shadow:var(--sh-sm)">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">${thead}${tbody}</table>
+    </div>
+    <div style="font-size:11px;color:var(--g500);margin-top:10px;line-height:1.6">
+      (1) EVR = Elemento Variabile della Retribuzione — il dato MIT mostra il valore eventualmente già incluso nel CMO ministeriale.<br>
+      Rosso = valore massimo nella selezione · Verde = valore minimo · BOZZA = CIPL non ancora firmato, elementi provinciali non disponibili.
+    </div>`;
+}
+
   const id=document.getElementById('sc-id').value.trim();
   const nome=document.getElementById('sc-nome').value.trim();
   const tot=parseFloat(document.getElementById('sc-tot').value)||0;
