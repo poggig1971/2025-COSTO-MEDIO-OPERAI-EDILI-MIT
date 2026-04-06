@@ -1370,7 +1370,12 @@ function renderMap() {
   });
 
   const vMin = d3.min(values), vMax = d3.max(values);
-  const colorScale = getGradient(grad).domain([vMin, vMax]);
+  // Usa 5°-95° percentile per il gradiente: gli outlier (es. Aosta) rimangono
+  // colorati al massimo/minimo ma non distorcono il gradiente delle altre province
+  const valSorted = [...values].sort((a,b)=>a-b);
+  const p05 = valSorted[Math.floor(valSorted.length*0.05)] ?? vMin;
+  const p95 = valSorted[Math.floor(valSorted.length*0.95)] ?? vMax;
+  const colorScale = getGradient(grad).domain([p05, p95]).clamp(true);
   const lvIdx = {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
   const lvLabel = ['1° livello','2° livello','3° livello','4° livello'][lvIdx];
 
@@ -1380,9 +1385,9 @@ function renderMap() {
     grad==='cmo' ? 'linear-gradient(to right,#FFF7ED,#C2410C)' :
     'linear-gradient(to right,#15803d,#fbbf24,#b91c1c)';
   document.getElementById('map-legend-labels').innerHTML =
-    `<span>€${vMin?.toFixed(2)}</span><span>€${((vMin+vMax)/2)?.toFixed(2)}</span><span>€${vMax?.toFixed(2)}</span>`;
+    `<span>€${vMin?.toFixed(2)}</span><span>€${((p05+p95)/2)?.toFixed(2)}</span><span>€${vMax?.toFixed(2)}</span>`;
   document.getElementById('map-status').textContent =
-    `${values.length} ${mode} · ${lvLabel} · min €${vMin?.toFixed(2)} — max €${vMax?.toFixed(2)}`;
+    `${values.length} ${mode} · ${lvLabel} · min €${vMin?.toFixed(2)} — max €${vMax?.toFixed(2)} (gradiente: €${p05?.toFixed(2)}–€${p95?.toFixed(2)})`;
 
   const tooltip = document.getElementById('map-tooltip');
 
@@ -1519,6 +1524,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
