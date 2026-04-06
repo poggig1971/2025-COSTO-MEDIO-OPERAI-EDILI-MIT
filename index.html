@@ -1273,13 +1273,22 @@ function findSiglaFromGeoName(name) {
   }
   // Province accorpate MIT: mappale alla sigla principale
   const ACCORPATE = {
-    'isernia': 'CB',          // Campobasso-Isernia
-    'barletta andria trani': 'BA',  // accorpata con Bari
-    'monza e della brianza': 'MI',  // accorpata con Milano
-    'lodi': 'MI',             // accorpata con Milano
-    'sud sardegna': 'CA',
-    'lodi': 'MI',
-    'reggio nell emilia': 'RE',
+    // Molise
+    'isernia':               'CB',
+    // Puglia BT → BA
+    'barletta andria trani': 'BA',
+    'barletta':              'BA',
+    'andria':                'BA',
+    'trani':                 'BA',
+    // Lombardia → MI
+    'monza e della brianza': 'MI',
+    'monza brianza':         'MI',
+    'monza':                 'MI',
+    'lodi':                  'MI',
+    // Sardegna
+    'sud sardegna':          'CA',
+    // Emilia
+    'reggio nell emilia':    'RE',
   };
   if(ACCORPATE[norm]) return ACCORPATE[norm];
   // Cerca nel RAW per città o sigla
@@ -1498,6 +1507,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
