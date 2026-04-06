@@ -839,7 +839,12 @@ let C = CAT_OP;
 
 /* City (uppercase) → Operai entry — built after OP loads */
 const cityToOp = new Map();
-function buildCityMap(){ CAT_OP.RAW.forEach(d=>cityToOp.set(d.c.toUpperCase(),d)); }
+function buildCityMap(){
+  CAT_OP.RAW.forEach(d=>cityToOp.set(d.c.toUpperCase(),d));
+  // Mappa inversa sigla → città per impiegati
+  CAT_OP.RAW.forEach(d=>siglaToCity.set(d.p.toUpperCase(), d.c));
+}
+const siglaToCity = new Map();
 
 /* ═══ UTILS ════════════════════════════════════════════════════════════════ */
 const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
@@ -1392,15 +1397,21 @@ async function loadMapData() {
 
 function getProvValue(sigla, lv) {
   const cat = C;
-  const row = cat.RAW.find(d => d.p === sigla);
+  let row;
+  if(cat.key === 'impiegati') {
+    // Per impiegati d.p = nome città → cerchiamo via siglaToCity
+    const city = siglaToCity.get(sigla.toUpperCase());
+    row = city ? cat.RAW.find(d => d.p.toUpperCase() === city.toUpperCase()) : null;
+  } else {
+    row = cat.RAW.find(d => d.p === sigla);
+  }
   if(!row) return null;
   const comp = document.getElementById('map-component')?.value || 'cmo';
-  if(comp === 'cmo') return row[lv] || null;
-  // Per componenti usa DET_DATA se disponibile
-  if(!cat.detLoaded || !cat.DET_DATA) return row[lv] || null;
-  // Impiegati: chiave in DET_DATA è la città (uguale a d.p per impiegati)
-  // Operai: chiave è la sigla provincia
-  const det = cat.DET_DATA.get(sigla) || cat.DET_DATA.get(row.c);
+  if(comp === 'cmo') return row[lv] ?? null;
+  if(!cat.detLoaded || !cat.DET_DATA) return row[lv] ?? null;
+  // Per impiegati la chiave in DET_DATA è il nome città (row.p)
+  // Per operai la chiave è la sigla
+  const det = cat.DET_DATA.get(row.p) || cat.DET_DATA.get(sigla);
   if(!det) return null;
   if(comp === 'ce') {
     const cp = det.cassaPercent;
@@ -2021,12 +2032,6 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
