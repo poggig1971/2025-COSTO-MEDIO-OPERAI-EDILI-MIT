@@ -371,10 +371,21 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
       <div class="alert alert-info">💡 Si negozia solo il <strong>Livello I (Par. 100)</strong>. Il sistema calcola automaticamente la cascata su tutti i livelli. Le date delle tranches sono suggerite ma completamente modificabili.</div>
+      <!-- Lista scenari salvati -->
+      <div class="card" id="card-scenari-list" style="display:none">
+        <div class="card-hdr">
+          <div><div class="card-label">Scenari salvati</div><div class="card-title">Seleziona uno scenario da caricare o modificare</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadScenariList()">🔄 Aggiorna</button>
+        </div>
+        <div id="scenari-list-body" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
+      </div>
+
       <div class="card">
         <div class="card-hdr">
-          <div><div class="card-label">Nuovo scenario</div><div class="card-title">Parametri dell'ipotesi negoziale</div></div>
+          <div><div class="card-label" id="sc-card-label">Nuovo scenario</div><div class="card-title">Parametri dell'ipotesi negoziale</div></div>
           <div class="btn-grp">
+            <button class="btn btn-ghost btn-sm" onclick="nuovoScenario()">➕ Nuovo</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadScenariList()">📂 Carica salvato</button>
             <button class="btn btn-ghost btn-sm" onclick="calcolaScenario()">🔄 Ricalcola</button>
             <button class="btn btn-primary btn-sm" onclick="salvaScenario()">💾 Salva scenario</button>
           </div>
@@ -1966,6 +1977,79 @@ function renderAnalisi() {
       (1) EVR = Elemento Variabile della Retribuzione — il dato MIT mostra il valore eventualmente già incluso nel CMO ministeriale.<br>
       Rosso = valore massimo nella selezione · Verde = valore minimo · BOZZA = CIPL non ancora firmato, elementi provinciali non disponibili.
     </div>`;
+}
+
+
+// ══════════════════════════════════════════════════
+// GESTIONE SCENARI SALVATI
+// ══════════════════════════════════════════════════
+let D_SCENARI = [];
+
+async function loadScenariList() {
+  const card = document.getElementById('card-scenari-list');
+  const body = document.getElementById('scenari-list-body');
+  if(!card || !body) return;
+  card.style.display = 'block';
+  body.innerHTML = '<div style="color:var(--g500);font-size:13px;padding:8px">Caricamento...</div>';
+  try {
+    const r = await callGet({action:'getScenari'});
+    D_SCENARI = r.data || [];
+    if(!D_SCENARI.length) {
+      body.innerHTML = '<div style="color:var(--g400);font-size:13px;padding:8px">Nessuno scenario salvato.</div>';
+      return;
+    }
+    body.innerHTML = D_SCENARI.map((s,i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--g50);border:1px solid var(--g200);border-radius:7px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--blu)">${s.SCENARIO_ID||'—'} <span style="font-weight:400;color:var(--g600)">— ${s.NOME||'—'}</span></div>
+          <div style="font-size:11px;color:var(--g500);margin-top:2px">
+            Aum. Par.100: <strong>€${s.AUM_TOTALE_PAR100||0}</strong> · Tranches: ${s.N_TRANCHES||3} · 
+            <span style="background:${s.STATO==='FIRMATO'?'#e6f4ed':'#fef3c7'};color:${s.STATO==='FIRMATO'?'#15803d':'#b45309'};padding:1px 6px;border-radius:4px;font-weight:700;font-size:10px">${s.STATO||'BOZZA'}</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="caricaScenario(${i})">📥 Carica</button>
+      </div>`).join('');
+  } catch(e) {
+    body.innerHTML = '<div style="color:#b91c1c;font-size:13px;padding:8px">Errore caricamento: ' + e.message + '</div>';
+  }
+}
+
+function caricaScenario(idx) {
+  const s = D_SCENARI[idx];
+  if(!s) return;
+  // Popola i campi
+  document.getElementById('sc-id').value  = s.SCENARIO_ID || '';
+  document.getElementById('sc-nome').value = s.NOME || '';
+  document.getElementById('sc-tot').value  = s.AUM_TOTALE_PAR100 || '';
+  const nTr = parseInt(s.N_TRANCHES) || 3;
+  document.getElementById('sc-tr').value = nTr;
+  document.getElementById('sc-card-label').textContent = 'Scenario caricato';
+
+  // Rigenera i campi tranche e popola
+  calcolaScenario();
+  setTimeout(() => {
+    for(let i=1;i<=4;i++) {
+      const dEl = document.getElementById(`sc-d${i}`);
+      const iEl = document.getElementById(`sc-i${i}`);
+      if(dEl && s[`DATA_T${i}`]) dEl.value = s[`DATA_T${i}`];
+      if(iEl && s[`IMP_T${i}`]) iEl.value = s[`IMP_T${i}`];
+    }
+    calcolaScenario();
+    // Nascondi la lista dopo il caricamento
+    document.getElementById('card-scenari-list').style.display = 'none';
+  }, 300);
+}
+
+function nuovoScenario() {
+  document.getElementById('sc-id').value = '';
+  document.getElementById('sc-nome').value = '';
+  document.getElementById('sc-tot').value = '';
+  document.getElementById('sc-tr').value = '3';
+  document.getElementById('sc-card-label').textContent = 'Nuovo scenario';
+  document.getElementById('card-scenari-list').style.display = 'none';
+  document.getElementById('card-preview').style.display = 'none';
+  document.getElementById('card-perequazione').style.display = 'none';
+  calcolaScenario();
 }
 
 async function salvaScenario() {
