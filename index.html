@@ -1218,16 +1218,63 @@ function getRegValue(regName, lv) {
   return d3.mean(rows, d => d[lv]);
 }
 
+// Normalizza nome provincia per il matching
+function normProvName(s) {
+  if(!s) return '';
+  return s
+    .toLowerCase()
+    .replace(/\/.*/, '')           // "Bolzano/Bozen" → "bolzano"
+    .replace(/vallée.*/, '')        // "Vallée d'Aoste" → ""
+    .replace(/['']/g, "'")
+    .replace(/[-–]/g, ' ')         // trattini → spazio
+    .replace(/[àá]/g,'a').replace(/[èé]/g,'e').replace(/[ì]/g,'i')
+    .replace(/[òó]/g,'o').replace(/[ùú]/g,'u')
+    .replace(/\s+/g,' ').trim();
+}
+
+// Mappa esplicita per casi speciali GeoJSON openpolis
+const GEOJSON_ALIAS = {
+  "bolzano bozen":"BZ",
+  "bolzano":"BZ",
+  "valle d aosta":"AO",
+  "aosta":"AO",
+  "verbano cusio ossola":"VB",
+  "massa carrara":"MS",
+  "forli cesena":"FC",
+  "reggio nell emilia":"RE",
+  "reggio emilia":"RE",
+  "reggio di calabria":"RC",
+  "reggio calabria":"RC",
+  "pesaro e urbino":"PU",
+  "pesaro urbino":"PU",
+  "barletta andria trani":"BT",
+  "monza e della brianza":"MB",
+  "monza brianza":"MB",
+  "la spezia":"SP",
+  "l aquila":"AQ",
+  "sud sardegna":"SU",
+};
+
 function findSiglaFromGeoName(name) {
   if(!name) return null;
-  const clean = name.replace(/\s*\(.*\)/, '').trim();
-  if(PROV_ABBR_MAP[clean]) return PROV_ABBR_MAP[clean];
-  // Cerca corrispondenza parziale
+  // Prova match diretto
+  if(PROV_ABBR_MAP[name]) return PROV_ABBR_MAP[name];
+  // Prova alias espliciti
+  const norm = normProvName(name);
+  if(GEOJSON_ALIAS[norm]) return GEOJSON_ALIAS[norm];
+  // Prova match normalizzato sul PROV_ABBR_MAP
   for(const [k,v] of Object.entries(PROV_ABBR_MAP)) {
-    if(clean.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(clean.toLowerCase())) return v;
+    if(normProvName(k) === norm) return v;
   }
-  // Cerca nel RAW per sigla
-  const row = C.RAW.find(d => d.c.toLowerCase() === clean.toLowerCase() || d.p.toLowerCase() === clean.toLowerCase());
+  // Prova match parziale normalizzato
+  for(const [k,v] of Object.entries(PROV_ABBR_MAP)) {
+    const nk = normProvName(k);
+    if(norm.includes(nk) || nk.includes(norm)) return v;
+  }
+  // Cerca nel RAW per città o sigla
+  const row = C.RAW.find(d =>
+    normProvName(d.c) === norm || d.p.toLowerCase() === norm
+  );
   return row ? row.p : null;
 }
 
@@ -1440,6 +1487,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
