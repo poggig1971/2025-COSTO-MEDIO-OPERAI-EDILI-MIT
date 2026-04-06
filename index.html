@@ -1271,6 +1271,15 @@ function findSiglaFromGeoName(name) {
     const nk = normProvName(k);
     if(norm.includes(nk) || nk.includes(norm)) return v;
   }
+  // Province accorpate MIT: mappale alla sigla principale
+  const ACCORPATE = {
+    'isernia': 'CB',          // Campobasso-Isernia
+    'barletta andria trani': 'BA',  // accorpata con Bari
+    'monza e della brianza': 'MI',  // accorpata con Milano
+    'lodi': 'MI',             // accorpata con Milano
+    'sud sardegna': 'CA',     // usa Cagliari come proxy
+  };
+  if(ACCORPATE[norm]) return ACCORPATE[norm];
   // Cerca nel RAW per città o sigla
   const row = C.RAW.find(d =>
     normProvName(d.c) === norm || d.p.toLowerCase() === norm
@@ -1487,6 +1496,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
