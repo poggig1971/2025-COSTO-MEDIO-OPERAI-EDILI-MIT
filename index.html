@@ -1215,9 +1215,7 @@ function render(){
 function switchView(v){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
-  if (v === 'det' && C.key === 'operai' && !C.detLoaded) {
-    loadDettagli();
-  }
+  if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
   if(v==='map'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData(); }
   // anatomia integrata nella mappa
   if(v==='convergenza'){
@@ -1530,27 +1528,16 @@ function switchMapComp(comp) {
   } else {
     // Carica i dettagli e poi renderizza
     const status = document.getElementById('map-status');
-    if (status) status.textContent = 'Caricamento dati componente…';
-    
-    if (C.detLoaded) {
-      renderMap();
-    } else {
-      if (C.key === 'operai') {
-        loadDettagli();
-      } else {
-        loadImpData();
+    if(status) status.textContent = 'Caricamento dati componente…';
+    loadDettagli();
+    const wt = setInterval(() => {
+      if(C.detLoaded) {
+        clearInterval(wt);
+        renderMap();
       }
-    
-      const wt = setInterval(() => {
-        if (C.detLoaded) {
-          clearInterval(wt);
-          if (status) status.textContent = '';
-          renderMap();
-        }
-      }, 300);
-    
-      setTimeout(() => clearInterval(wt), 15000);
-    }
+    }, 300);
+    setTimeout(() => clearInterval(wt), 15000);
+  }
 }
 
 function renderMap() {
@@ -1715,12 +1702,7 @@ function renderMap() {
       <span style="font-size:10px;font-weight:700;color:var(--text-4);min-width:18px">${i+1}</span>
       <span class="map-prov-dot" style="background:${col}"></span>
       <span style="flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sig||f._name}</span>
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">
-      ${(document.getElementById('map-component')?.value === 'ce') 
-        ? f._val.toFixed(2) + '%' 
-        : '€' + f._val.toFixed(2)}
-      </span>
-       
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">€${f._val.toFixed(2)}</span>
     </div>`;
   }).join('');
 
@@ -1729,64 +1711,23 @@ function renderMap() {
 
 function showMapSidebar(f, lv, lvLabel, colorScale) {
   const sigla = findSiglaFromGeoName(f._name);
-  const rawRow = sigla ? C.RAW.find(d => d.p === sigla) : null;
+  const rawRow = sigla ? C.RAW.find(d=>d.p===sigla) : null;
   const val = f._val;
   const info = document.getElementById('map-sel-info');
-
-  if (val == null) {
-    info.textContent = 'Dato non disponibile per ' + f._name;
-    return;
-  }
-
-  const comp = document.getElementById('map-component')?.value || 'cmo';
-
+  if(!val) { info.textContent = 'Dato non disponibile per ' + f._name; return; }
   const lvs = C.LVS || ['lv1','lv2','lv3','lv4'];
   const lvLabels = C.LV_SHT || ['1°','2°','3°','4°'];
-
-  const allVals = lvs.map((l, i) => {
-    let v = null;
-
-    if (comp === 'cmo') {
-      v = rawRow ? rawRow[l] : null;
-    } else {
-      // usa la stessa logica della mappa
-      v = getProvValue(sigla, comp, l);
-    }
-
-    return {
-      label: lvLabels[i],
-      v
-    };
-  });
-
+  const allVals = lvs.map((l,i) => ({l, label:lvLabels[i], v:rawRow?rawRow[l]:null}));
   info.innerHTML = `
-    <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:6px">
-      ${f._name}${sigla ? ' (' + sigla + ')' : ''}
-    </div>
-
-    <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">
-      ${rawRow?.r || ''}
-    </div>
-
-    ${allVals.map(({label, v}) => {
-      const formatted = v == null
-        ? '—'
-        : (comp === 'ce'
-            ? v.toFixed(2) + '%'
-            : '€' + v.toFixed(2));
-
-      return `
+    <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:6px">${f._name}${sigla?' ('+sigla+')':''}</div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">${rawRow?.r||''}</div>
+    ${allVals.map(({label,v}) => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:11px;color:var(--text-3)">
-          ${label} livello
+        <span style="font-size:11px;color:var(--text-3)">${label} livello</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:${v?colorScale(v):'var(--text-4)'}">
+          ${v?'€'+v.toFixed(2):'—'}
         </span>
-
-        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:${v != null ? colorScale(v) : 'var(--text-4)'}">
-          ${formatted}
-        </span>
-      </div>`;
-    }).join('')}
-  `;
+      </div>`).join('')}`;
 }
 
 function mapClickFeature(name) {
@@ -1886,7 +1827,7 @@ async function initAnatomia() {
 }
 
 function renderAnatomia() {
-  if (!mapLoaded || !C.detLoaded) return;
+  if(!mapLoaded || !DET_LOADED) return;
   const lv  = document.getElementById('anat-lv')?.value || 'lv1';
   const cfg = ANAT_LAYERS[anatLayer] || ANAT_LAYERS.trasp;
   const isPercent = anatLayer === 'ce';
@@ -2069,6 +2010,8 @@ loadData();
 </script>
 </body>
 </html>
+
+
 
 
 
