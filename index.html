@@ -549,7 +549,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       </div>
       <aside class="map-sidebar" id="map-sidebar">
         <!-- COMPONENTE — dentro la sidebar sempre visibile -->
-        <div id="comp-selector-box" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px">
+        <div id="comp-selector-box" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px;position:sticky;top:0;z-index:10">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1e3a8a;margin-bottom:6px">🔬 Componente</div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
@@ -1398,7 +1398,9 @@ function getProvValue(sigla, lv) {
   if(comp === 'cmo') return row[lv] || null;
   // Per componenti usa DET_DATA se disponibile
   if(!cat.detLoaded || !cat.DET_DATA) return row[lv] || null;
-  const det = cat.DET_DATA.get(sigla);
+  // Impiegati: chiave in DET_DATA è la città (uguale a d.p per impiegati)
+  // Operai: chiave è la sigla provincia
+  const det = cat.DET_DATA.get(sigla) || cat.DET_DATA.get(row.c);
   if(!det) return null;
   if(comp === 'ce') {
     const cp = det.cassaPercent;
@@ -1408,7 +1410,7 @@ function getProvValue(sigla, lv) {
   }
   const keyMap = { trasp:'trasp', mensa:'mensa' };
   const k = keyMap[comp];
-  return k ? (det.data[k]?.[lv] || null) : null;
+  return k ? (det.data[k]?.[lv] ?? null) : null;
 }
 
 function getRegValue(regName, lv) {
@@ -1528,17 +1530,20 @@ function switchMapComp(comp) {
 
   // Per trasporto/mensa/CE servono i dettagli
   if(C.detLoaded) {
+    // Impiegati: DET_DATA già popolata da loadImpData() — ok
+    // Operai: DET_DATA popolata da loadDettagli() — ok
     renderMap();
   } else {
-    // Carica i dettagli e poi renderizza
     const status = document.getElementById('map-status');
     if(status) status.textContent = 'Caricamento dati componente…';
-    loadDettagli();
+    // Operai → loadDettagli(); Impiegati → loadImpData() (che carica già tutto)
+    if(C.key === 'impiegati') {
+      loadImpData();
+    } else {
+      loadDettagli();
+    }
     const wt = setInterval(() => {
-      if(C.detLoaded) {
-        clearInterval(wt);
-        renderMap();
-      }
+      if(C.detLoaded) { clearInterval(wt); renderMap(); }
     }, 300);
     setTimeout(() => clearInterval(wt), 15000);
   }
@@ -2016,10 +2021,6 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
 
 
 
