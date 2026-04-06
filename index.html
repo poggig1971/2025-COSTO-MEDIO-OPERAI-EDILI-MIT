@@ -1341,13 +1341,25 @@ function renderMap() {
   const geo = mode === 'province' ? mapGeoProvince : mapGeoRegioni;
   if(!geo) return;
 
+  // Mappa province accorpate: sigla GeoJSON → sigla MIT
+  const MIT_ALIAS = {
+    'BT': 'BA',  // Barletta-Andria-Trani → Bari
+    'MB': 'MI',  // Monza Brianza → Milano
+    'LO': 'MI',  // Lodi → Milano
+    'IS': 'CB',  // Isernia → Campobasso
+    'SU': 'CA',  // Sud Sardegna → Cagliari
+  };
+
   const values = [];
   geo.features.forEach(f => {
     const name = f.properties.prov_name || f.properties.reg_name || f.properties.name || '';
     let val = null;
     if(mode === 'province') {
-      const sig = findSiglaFromGeoName(name);
+      // Usa prov_acr se disponibile (openpolis GeoJSON), altrimenti fallback su nome
+      let sig = f.properties.prov_acr || f.properties.prov_sigla || findSiglaFromGeoName(name);
+      if(sig) sig = MIT_ALIAS[sig.toUpperCase()] || sig.toUpperCase();
       val = sig ? getProvValue(sig, lv) : null;
+      f._sig = sig;
     } else {
       const reg = findRegFromGeoName(name);
       val = reg ? getRegValue(reg, lv) : null;
@@ -1399,7 +1411,7 @@ function renderMap() {
     .style('cursor','pointer')
     .on('mouseover', function(e, f) {
       d3.select(this).attr('opacity',1).attr('stroke-width', mode==='province'?'0.8':'1.5');
-      const sigla = mode==='province' ? findSiglaFromGeoName(f._name) : null;
+      const sigla = mode==='province' ? (f._sig || findSiglaFromGeoName(f._name)) : null;
       const rawRow = sigla ? C.RAW.find(d=>d.p===sigla) : null;
       const val = f._val;
       tooltip.style.display = 'block';
@@ -1507,6 +1519,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
