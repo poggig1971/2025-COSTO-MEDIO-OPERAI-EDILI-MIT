@@ -281,7 +281,7 @@ body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--b
 .map-svg-wrap { flex:1; display:flex; align-items:center; justify-content:center; }
 #italy-svg { width:100%; height:100%; cursor:grab; }
 #italy-svg:active { cursor:grabbing; }
-.map-sidebar { width:260px; flex-shrink:0; border-left:1px solid var(--border); background:var(--surface); overflow-y:auto; padding:14px; }
+.map-sidebar { width:260px; flex-shrink:0; border-left:1px solid var(--border); background:var(--surface); overflow-y:auto; padding:14px; padding-top:8px; }
 .map-legend { display:flex; flex-direction:column; gap:4px; margin-top:8px; }
 .legend-bar { height:14px; border-radius:2px; background:linear-gradient(to right,#15803d,#fbbf24,#b91c1c); }
 .legend-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text-4); font-family:var(--mono); }
@@ -549,7 +549,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       </div>
       <aside class="map-sidebar" id="map-sidebar">
         <!-- COMPONENTE — dentro la sidebar sempre visibile -->
-        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px;margin-top:8px">
+        <div id="comp-selector-box" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1e3a8a;margin-bottom:6px">🔬 Componente</div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
@@ -1216,7 +1216,11 @@ function switchView(v){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
   if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
-  if(v==='map'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData(); }
+  if(v==='map'){
+    // Scroll sidebar a top per mostrare il selettore componente
+    setTimeout(()=>{ const sb=document.getElementById('map-sidebar'); if(sb) sb.scrollTop=0; }, 100);
+    if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData();
+  }
   // anatomia integrata nella mappa
   if(v==='convergenza'){
     const cvEl=document.getElementById('view-convergenza');
@@ -1702,7 +1706,7 @@ function renderMap() {
       <span style="font-size:10px;font-weight:700;color:var(--text-4);min-width:18px">${i+1}</span>
       <span class="map-prov-dot" style="background:${col}"></span>
       <span style="flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sig||f._name}</span>
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">€${f._val.toFixed(2)}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">${(()=>{const comp=document.getElementById('map-component')?.value||'cmo';return comp==='ce'?f._val.toFixed(2)+'%':'€'+f._val.toFixed(2);})()}</span>
     </div>`;
   }).join('');
 
@@ -1714,10 +1718,12 @@ function showMapSidebar(f, lv, lvLabel, colorScale) {
   const rawRow = sigla ? C.RAW.find(d=>d.p===sigla) : null;
   const val = f._val;
   const info = document.getElementById('map-sel-info');
-  if(!val) { info.textContent = 'Dato non disponibile per ' + f._name; return; }
+  if(val == null) { info.textContent = 'Dato non disponibile per ' + f._name; return; }
   const lvs = C.LVS || ['lv1','lv2','lv3','lv4'];
   const lvLabels = C.LV_SHT || ['1°','2°','3°','4°'];
-  const allVals = lvs.map((l,i) => ({l, label:lvLabels[i], v:rawRow?rawRow[l]:null}));
+  const comp = document.getElementById('map-component')?.value || 'cmo';
+  const isPercSb = comp === 'ce';
+  const allVals = lvs.map((l,i) => ({l, label:lvLabels[i], v: sigla ? getProvValue(sigla, l) : null}));
   info.innerHTML = `
     <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:6px">${f._name}${sigla?' ('+sigla+')':''}</div>
     <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">${rawRow?.r||''}</div>
@@ -1725,7 +1731,7 @@ function showMapSidebar(f, lv, lvLabel, colorScale) {
       <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:11px;color:var(--text-3)">${label} livello</span>
         <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:${v?colorScale(v):'var(--text-4)'}">
-          ${v?'€'+v.toFixed(2):'—'}
+          ${v!=null?( isPercSb?v.toFixed(2)+'%':'€'+v.toFixed(2) ):'—'}
         </span>
       </div>`).join('')}`;
 }
@@ -2010,6 +2016,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
