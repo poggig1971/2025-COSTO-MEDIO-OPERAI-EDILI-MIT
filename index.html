@@ -1215,7 +1215,9 @@ function render(){
 function switchView(v){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
-  if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
+  if (v === 'det' && C.key === 'operai' && !C.detLoaded) {
+    loadDettagli();
+  }
   if(v==='map'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData(); }
   // anatomia integrata nella mappa
   if(v==='convergenza'){
@@ -1528,16 +1530,27 @@ function switchMapComp(comp) {
   } else {
     // Carica i dettagli e poi renderizza
     const status = document.getElementById('map-status');
-    if(status) status.textContent = 'Caricamento dati componente…';
-    loadDettagli();
-    const wt = setInterval(() => {
-      if(C.detLoaded) {
-        clearInterval(wt);
-        renderMap();
+    if (status) status.textContent = 'Caricamento dati componente…';
+    
+    if (C.detLoaded) {
+      renderMap();
+    } else {
+      if (C.key === 'operai') {
+        loadDettagli();
+      } else {
+        loadImpData();
       }
-    }, 300);
-    setTimeout(() => clearInterval(wt), 15000);
-  }
+    
+      const wt = setInterval(() => {
+        if (C.detLoaded) {
+          clearInterval(wt);
+          if (status) status.textContent = '';
+          renderMap();
+        }
+      }, 300);
+    
+      setTimeout(() => clearInterval(wt), 15000);
+    }
 }
 
 function renderMap() {
@@ -1702,7 +1715,12 @@ function renderMap() {
       <span style="font-size:10px;font-weight:700;color:var(--text-4);min-width:18px">${i+1}</span>
       <span class="map-prov-dot" style="background:${col}"></span>
       <span style="flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sig||f._name}</span>
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">€${f._val.toFixed(2)}</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:${col}">
+      ${(document.getElementById('map-component')?.value === 'ce') 
+        ? f._val.toFixed(2) + '%' 
+        : '€' + f._val.toFixed(2)}
+      </span>
+       
     </div>`;
   }).join('');
 
@@ -1827,7 +1845,7 @@ async function initAnatomia() {
 }
 
 function renderAnatomia() {
-  if(!mapLoaded || !DET_LOADED) return;
+  if (!mapLoaded || !C.detLoaded) return;
   const lv  = document.getElementById('anat-lv')?.value || 'lv1';
   const cfg = ANAT_LAYERS[anatLayer] || ANAT_LAYERS.trasp;
   const isPercent = anatLayer === 'ce';
