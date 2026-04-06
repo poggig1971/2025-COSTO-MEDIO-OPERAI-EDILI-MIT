@@ -170,6 +170,20 @@ tr:hover td{background:var(--g50)}
 /* RESPONSIVE */
 @media(max-width:900px){.main{padding:16px}.hdr{padding:0 16px}.nav{padding:0 16px}.kpi-grid-3,.kpi-grid-4{grid-template-columns:1fr 1fr}.layout-2{grid-template-columns:1fr}.form-grid-3,.form-grid-4{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.kpi-grid-3,.kpi-grid-4{grid-template-columns:1fr}.form-grid-2,.form-grid-3,.form-grid-4{grid-template-columns:1fr}.hdr-sub{display:none}}
+
+/* CIPL confronto badge */
+.cipl-pos-badge { display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700; }
+.cipl-pos-high { background:#FEE2E2;color:#B91C1C; }
+.cipl-pos-low  { background:#E6F4ED;color:#15803D; }
+.cipl-pos-avg  { background:#FEF3C7;color:#B45309; }
+/* Dumping */
+.dump-card { background:var(--surface);border:1px solid var(--g200);border-radius:10px;padding:18px 22px;margin-bottom:16px; }
+.dump-kpi-row { display:flex;gap:14px;flex-wrap:wrap;margin:14px 0; }
+.dump-kpi { flex:1;min-width:150px;background:var(--g100);border-radius:8px;padding:12px 14px; }
+.dump-kpi-lbl { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g500);margin-bottom:4px; }
+.dump-kpi-val { font-family:var(--mono);font-size:18px;font-weight:700;color:var(--blu); }
+/* Export */
+.exp-card { background:var(--surface);border:1px solid var(--g200);border-radius:10px;padding:20px 24px;margin-bottom:16px; }
 </style>
 </head>
 <body>
@@ -222,6 +236,8 @@ tr:hover td{background:var(--g50)}
     <div class="nav-tab" onclick="showPanel('analisi',this)" id="nt-analisi"><span class="nav-dot dot-green"></span>Analisi Integrata</div>
     <div class="nav-tab" onclick="showPanel('ccnl',this)" id="nt-ccnl"><span class="nav-dot dot-blu"></span>Consulta CCNL</div>
     <div class="nav-tab" onclick="showPanel('scenari',this)" id="nt-scenari" style="display:none"><span class="nav-dot dot-blu"></span>Scenari</div>
+    <div class="nav-tab" onclick="showPanel('dumping',this)" id="nt-dumping" style="display:none"><span class="nav-dot dot-blu"></span>⚖️ Dumping</div>
+    <div class="nav-tab" onclick="showPanel('export',this)" id="nt-export" style="display:none"><span class="nav-dot dot-blu"></span>📄 Export</div>
   </nav>
 
   <main class="main">
@@ -466,6 +482,35 @@ tr:hover td{background:var(--g50)}
         </div>
 
       </div>
+
+      <!-- SIMULATORE PEREQUATIVO -->
+      <div class="card" id="card-perequazione" style="display:none;border-left:3px solid #15803d">
+        <div class="card-hdr">
+          <div>
+            <div class="card-label" style="color:#15803d">Simulatore Perequativo</div>
+            <div class="card-title">Aumento differenziale — province basse vs. province alte</div>
+            <div class="card-sub" id="peq-sub">Inserisci uno scenario per attivare il simulatore</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="renderPerequazione()">🔄 Aggiorna</button>
+        </div>
+        <div id="peq-gap"></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th class="th-blu">Provincia</th>
+              <th class="th-blu" style="text-align:right">CMO oggi</th>
+              <th class="th-blu" style="text-align:right">Piatto</th>
+              <th class="th-blu" style="text-align:right">+15% basse</th>
+              <th class="th-blu" style="text-align:right">+30% basse</th>
+              <th class="th-blu" style="text-align:right">Beneficio extra</th>
+            </tr></thead>
+            <tbody id="peq-tbody"></tbody>
+          </table>
+        </div>
+        <div style="font-size:11px;color:var(--g500);margin-top:8px">
+          Province "basse" = sotto il 25° percentile nazionale CMO · Beneficio extra calcolato scenario +30% vs. piatto
+        </div>
+      </div>
     </div>
 
     <!-- ANALISI INTEGRATA -->
@@ -596,6 +641,131 @@ tr:hover td{background:var(--g50)}
       </div>
     </div>
 
+
+    <!-- DUMPING -->
+    <div class="panel" id="panel-dumping">
+      <div class="pg-hdr">
+        <div class="pg-title-wrap">
+          <div class="pg-accent accent-blu"></div>
+          <div><div class="pg-title">⚖️ Analisi Dumping Contrattuale</div>
+          <div class="pg-sub">Vantaggio competitivo di imprese extraregionali negli appalti pubblici · Solo Admin</div></div>
+        </div>
+        <div class="btn-grp">
+          <button class="btn btn-primary" onclick="calcolaDumping()">📊 Calcola vantaggi</button>
+        </div>
+      </div>
+      <div class="alert alert-info">⚠️ Il CCNL è unico nazionale ma il CMO varia fino al <strong>+59%</strong> tra province. Un'impresa che ha sede in province a basso CMO vince appalti in Piemonte con un vantaggio strutturale di costo sul lavoro che non emerge nell'offerta economica.</div>
+
+      <div class="card">
+        <div class="card-hdr"><div><div class="card-label">Parametri di simulazione</div><div class="card-title">Cantiere tipo in Piemonte</div></div></div>
+        <div class="form-grid form-grid-4">
+          <div class="fld"><label>Provincia destinazione (appalto)</label>
+            <select id="dp-dest" style="font-family:var(--font)" onchange="calcolaDumping()">
+              <option value="TO">Torino</option><option value="AL">Alessandria</option>
+              <option value="AT">Asti</option><option value="CN">Cuneo</option>
+              <option value="BI">Biella</option><option value="NO">Novara</option>
+              <option value="VC">Vercelli</option><option value="VB">Verbania</option>
+              <option value="AO">Aosta</option>
+            </select>
+          </div>
+          <div class="fld"><label>N° operai mediamente in cantiere</label>
+            <input type="number" id="dp-nop" value="10" min="1" max="200" oninput="calcolaDumping()">
+          </div>
+          <div class="fld"><label>Ore medie annue per operaio</label>
+            <input type="number" id="dp-ore" value="1543" min="100" max="2000" oninput="calcolaDumping()">
+          </div>
+          <div class="fld"><label>Livello operai prevalente</label>
+            <select id="dp-lv" style="font-family:var(--font)" onchange="calcolaDumping()">
+              <option value="lv1">1° livello — comune</option>
+              <option value="lv2">2° livello — qualificato</option>
+              <option value="lv3" selected>3° livello — specializzato</option>
+              <option value="lv4">4° livello — spec. superiore</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="dump-kpi-card" style="display:none">
+        <div class="card-hdr"><div><div class="card-label">Vantaggio strutturale</div><div class="card-title" id="dump-kpi-title">—</div></div></div>
+        <div class="dump-kpi-row" id="dump-kpis"></div>
+      </div>
+
+      <div class="card" id="dump-table-card" style="display:none">
+        <div class="card-hdr"><div><div class="card-label">Classifica province per vantaggio competitivo</div>
+          <div class="card-sub">Risparmio annuo vs. impresa locale (cantiere tipo). Rosso = massimo dumping possibile.</div></div></div>
+        <div class="tbl-wrap">
+          <table><thead><tr>
+            <th class="th-blu">Provincia origine</th>
+            <th class="th-blu" style="text-align:right">CMO orig. €/h</th>
+            <th class="th-blu" style="text-align:right">CMO dest. €/h</th>
+            <th class="th-blu" style="text-align:right">Δ €/h</th>
+            <th class="th-blu" style="text-align:right">Risparmio/anno op.</th>
+            <th class="th-blu" style="text-align:right">Risparmio cantiere</th>
+            <th class="th-blu" style="text-align:right">Su appalto €1M</th>
+            <th class="th-blu">Impatto</th>
+          </tr></thead>
+          <tbody id="dump-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="panel" id="panel-export">
+      <div class="pg-hdr">
+        <div class="pg-title-wrap">
+          <div class="pg-accent accent-blu"></div>
+          <div><div class="pg-title">📄 Export per Organi Associativi</div>
+          <div class="pg-sub">Genera documentazione formattata per Consiglio Generale, Presidenza e tavoli negoziali</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+        <div class="exp-card">
+          <div class="card-label">Scenario negoziale corrente</div>
+          <div class="card-title" style="margin-bottom:12px">Report per Consiglio Generale</div>
+          <p style="font-size:13px;color:var(--g600);margin-bottom:16px">Genera un documento HTML stampabile con la cascata livelli, l'impatto CMO per provincia e le note metodologiche. Ottimizzato per stampa A4.</p>
+          <div class="fld" style="margin-bottom:12px"><label>Titolo scenario</label>
+            <input type="text" id="exp-title" value="Ipotesi rinnovo CCNL 2028" style="font-family:var(--font)">
+          </div>
+          <div class="fld" style="margin-bottom:16px"><label>Note a verbale (opzionale)</label>
+            <textarea id="exp-note" rows="3" style="font-family:var(--font);font-size:13px;padding:8px;border:1.5px solid var(--g200);border-radius:6px;width:100%;resize:vertical">Elaborazione ANCE Piemonte Valle d'Aosta — uso riservato</textarea>
+          </div>
+          <button class="btn btn-primary" onclick="esportaScenario()">📊 Genera report HTML</button>
+        </div>
+
+        <div class="exp-card">
+          <div class="card-label">Analisi dumping</div>
+          <div class="card-title" style="margin-bottom:12px">Position paper anti-dumping</div>
+          <p style="font-size:13px;color:var(--g600);margin-bottom:16px">Esporta la tabella di vantaggio competitivo con la provincia selezionata nel tab Dumping, formattata come posizione ufficiale ANCE per tavoli istituzionali.</p>
+          <div class="fld" style="margin-bottom:16px"><label>Destinatario</label>
+            <select id="exp-dest" style="font-family:var(--font)">
+              <option>ANCE Nazionale — Ufficio Sindacale</option>
+              <option>MIT — Direzione Generale</option>
+              <option>Commissione lavoro Camera/Senato</option>
+              <option>ANAC — Vigilanza appalti</option>
+              <option>Uso interno Presidenza</option>
+            </select>
+          </div>
+          <button class="btn btn-tiffany" onclick="esportaDumping()">📄 Genera position paper</button>
+        </div>
+
+        <div class="exp-card">
+          <div class="card-label">Dati CIPL</div>
+          <div class="card-title" style="margin-bottom:12px">Report provinciale completo</div>
+          <p style="font-size:13px;color:var(--g600);margin-bottom:16px">Esporta tutti i dati CIPL inseriti nella Suite (province firmate e bozze) in formato tabellare per la Presidenza.</p>
+          <button class="btn btn-ghost" onclick="esportaCIPL()">📋 Esporta dati CIPL (tabella)</button>
+        </div>
+
+        <div class="exp-card">
+          <div class="card-label">Dati comparativi</div>
+          <div class="card-title" style="margin-bottom:12px">Benchmark nazionale CSV</div>
+          <p style="font-size:13px;color:var(--g600);margin-bottom:16px">Scarica i dati CMO di tutte le province in formato CSV per elaborazioni esterne (Excel, R, ecc.).</p>
+          <button class="btn btn-ghost" onclick="esportaCSV()">📥 Scarica CSV tutte le province</button>
+        </div>
+
+      </div>
+    </div>
   </main>
 </div>
 
@@ -691,9 +861,13 @@ async function startApp() {
   document.getElementById('user-av').textContent = S.u.substring(0,2).toUpperCase();
   document.getElementById('user-nm').textContent = S.u;
   document.getElementById('user-rl').textContent = S.ruolo;
-  if(S.ruolo==='ADMIN') document.getElementById('nt-scenari').style.display='flex';
+  if(S.ruolo==='ADMIN') {
+    document.getElementById('nt-scenari').style.display='flex';
+    document.getElementById('nt-dumping').style.display='flex';
+    document.getElementById('nt-export').style.display='flex';
+  }
   await Promise.all([loadNaz(), loadProv(), loadCMO()]);
-  await loadDettagli();
+  await loadDettagli();  // carica dati MIT dettaglio per Analisi Integrata e Dumping
   calcolaScenario();
 }
 
@@ -708,6 +882,8 @@ function showPanel(id, el) {
   if(id==='provinciale'||id==='benchmark'||id==='analisi') el.classList.add('green');
   if(id==='benchmark') renderBenchmark();
   if(id==='ccnl') initCCNL();
+  if(id==='dumping') { if(DET_LOADED) calcolaDumping(); else loadDettagli().then(calcolaDumping); }
+  if(id==='export') {}
 }
 
 // ══════════════════════════════════════════════════
@@ -1085,6 +1261,7 @@ function aggiornaCascata() {
     return `<tr><td class="td-lv">${l.l}</td><td class="td-par">${l.p}</td><td class="td-r">${f2(b)}</td>${im.map(v=>`<td class="td-r" style="color:#1D4ED8">+${f2(v)}</td>`).join('')}${empties}<td class="td-r" style="font-weight:700;color:var(--blu)">+${f2(tt)}</td><td class="td-r" style="font-weight:700">€ ${f2(round2(b+tt))}</td></tr>`;
   }).join('');
   card.style.display='block';
+  renderPerequazione();
 
   // Mostra il card impatto se i dati sono disponibili
   const cardImp = document.getElementById('card-impatto');
@@ -2063,6 +2240,283 @@ function renderAiHistory() {
   el.scrollTop = el.scrollHeight;
 }
 
+
+
+
+// ══════════════════════════════════════════════════
+// DUMPING CONTRATTUALE
+// ══════════════════════════════════════════════════
+function calcolaDumping() {
+  if(!DET_LOADED) return;
+  const destSig = document.getElementById('dp-dest')?.value || 'TO';
+  const nOp     = parseFloat(document.getElementById('dp-nop')?.value) || 10;
+  const ore     = parseFloat(document.getElementById('dp-ore')?.value) || 1543;
+  const lv      = document.getElementById('dp-lv')?.value || 'lv3';
+
+  const destData = DET_DATA.get(destSig);
+  if(!destData) return;
+  const cmoDest = destData.data.cmo?.[lv] || 0;
+
+  // Raccoglie CMO di tutte le province
+  const rows = [];
+  DET_DATA.forEach((d,sig) => {
+    if(sig === destSig) return;
+    const cmoOrig = d.data.cmo?.[lv] || 0;
+    if(!cmoOrig) return;
+    const delta = round2(cmoDest - cmoOrig);
+    if(delta <= 0) return; // solo province più economiche
+    const rispAnnOp   = round2(delta * ore);
+    const rispCantiere = round2(rispAnnOp * nOp);
+    const rispSuMln   = round2(rispCantiere / (cmoDest * ore * nOp) * 1000000);
+    rows.push({ sig, city:d.c, reg:d.r, cmoOrig, cmoDest, delta, rispAnnOp, rispCantiere, rispSuMln });
+  });
+  rows.sort((a,b) => b.delta - a.delta);
+
+  const maxDelta = rows[0]?.delta || 1;
+  const destCity = destData.c;
+
+  // KPI
+  document.getElementById('dump-kpi-card').style.display = 'block';
+  document.getElementById('dump-table-card').style.display = 'block';
+  document.getElementById('dump-kpi-title').textContent =
+    `Appalto a ${destCity} (${destSig}) — ${nOp} operai ${lv.replace('lv','').replace('1','1°').replace('2','2°').replace('3','3°').replace('4','4°')} liv. — CMO locale €${cmoDest.toFixed(2)}/h`;
+
+  const top = rows[0];
+  document.getElementById('dump-kpis').innerHTML = `
+    <div class="dump-kpi"><div class="dump-kpi-lbl">Province con vantaggio</div><div class="dump-kpi-val">${rows.length}</div></div>
+    <div class="dump-kpi"><div class="dump-kpi-lbl">Vantaggio max (${top?.sig})</div><div class="dump-kpi-val" style="color:#b91c1c">€${top?.delta.toFixed(2)}/h</div></div>
+    <div class="dump-kpi"><div class="dump-kpi-lbl">Risparmio cantiere max/anno</div><div class="dump-kpi-val" style="color:#b91c1c">€${top?.rispCantiere.toLocaleString('it-IT')}</div></div>
+    <div class="dump-kpi"><div class="dump-kpi-lbl">Su appalto €1M max</div><div class="dump-kpi-val" style="color:#b91c1c">€${top?.rispSuMln.toLocaleString('it-IT')}</div></div>
+    <div class="dump-kpi"><div class="dump-kpi-lbl">Vantaggio medio</div><div class="dump-kpi-val">€${round2(rows.reduce((s,r)=>s+r.delta,0)/rows.length).toFixed(2)}/h</div></div>`;
+
+  document.getElementById('dump-tbody').innerHTML = rows.slice(0,25).map((r,i) => {
+    const barW = Math.round(r.delta/maxDelta*100);
+    const intensity = i < 5 ? '#b91c1c' : i < 15 ? '#f97316' : '#fbbf24';
+    return `<tr>
+      <td style="font-weight:600;color:var(--blu)">${r.sig} · ${r.city} <span style="font-size:10px;color:var(--g500)">${r.reg}</span></td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.cmoOrig.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.cmoDest.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:${intensity}">−€${r.delta.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.rispAnnOp.toLocaleString('it-IT')}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700">€${r.rispCantiere.toLocaleString('it-IT')}</td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.rispSuMln.toLocaleString('it-IT')}</td>
+      <td><div style="background:var(--g200);border-radius:3px;height:6px;overflow:hidden;min-width:60px">
+        <div style="background:${intensity};height:100%;width:${barW}%;border-radius:3px"></div>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════
+function esportaScenario() {
+  const title = document.getElementById('exp-title')?.value || 'Scenario negoziale';
+  const note  = document.getElementById('exp-note')?.value || '';
+  const tot   = parseFloat(document.getElementById('sc-tot')?.value) || 0;
+  const nTr   = parseInt(document.getElementById('sc-tr')?.value) || 3;
+  if(!tot) { alert('Inserisci prima uno scenario nel tab Scenari.'); return; }
+
+  const now = new Date().toLocaleDateString('it-IT');
+  const BLU = '#1E3A5F';
+
+  let cascata = '';
+  LIVELLI.forEach(l => {
+    const f=l.p/100, b=BASE_NEXT[l.l]||0;
+    const tr=[];
+    for(let i=1;i<=nTr;i++){
+      const v=parseFloat(document.getElementById(`sc-i${i}`)?.value)||0;
+      tr.push(round2(v*f));
+    }
+    const totAum=tr.reduce((s,v)=>s+v,0);
+    cascata+=`<tr>
+      <td style="font-weight:700;color:${BLU}">Livello ${l.l}</td>
+      <td style="text-align:right">${l.p}</td>
+      <td style="text-align:right">€ ${b.toFixed(2)}</td>
+      ${tr.map(v=>`<td style="text-align:right;color:#2563EB">+${v.toFixed(2)}</td>`).join('')}
+      <td style="text-align:right;font-weight:700">+€ ${totAum.toFixed(2)}</td>
+      <td style="text-align:right;font-weight:700;color:${BLU}">€ ${(b+totAum).toFixed(2)}</td>
+    </tr>`;
+  });
+
+  const html = `<!DOCTYPE html><html lang="it">
+<head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:12pt;margin:2cm;color:#1a1a2e}
+  h1{color:${BLU};font-size:18pt;border-bottom:3px solid #0ABAB5;padding-bottom:8px}
+  h2{color:${BLU};font-size:13pt;margin-top:24px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11pt}
+  th{background:${BLU};color:white;padding:8px 10px;text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.5px}
+  td{padding:7px 10px;border-bottom:1px solid #e5e7eb}
+  tr:nth-child(even) td{background:#f4f7fc}
+  .meta{color:#6b7280;font-size:10pt;margin-bottom:20px}
+  .note{background:#EBF9F8;border-left:3px solid #0ABAB5;padding:10px 14px;font-size:10pt;margin-top:20px}
+  @media print{body{margin:1.5cm}}
+</style></head><body>
+<h1>${title}</h1>
+<div class="meta">ANCE Piemonte Valle d'Aosta · Elaborazione Suite Negoziale · ${now}<br>
+CCNL Edilizia Industria 21/02/2025 · Aumento Par. 100: €${tot.toFixed(2)} in ${nTr} tranches</div>
+<h2>Cascata livelli — base Min. 01/03/2027 CCNL vigente</h2>
+<table><thead><tr>
+  <th>Livello</th><th style="text-align:right">Par.</th><th style="text-align:right">Base</th>
+  ${Array.from({length:nTr},(_,i)=>`<th style="text-align:right">T${i+1}</th>`).join('')}
+  <th style="text-align:right">Totale aum.</th><th style="text-align:right">Min. finale</th>
+</tr></thead><tbody>${cascata}</tbody></table>
+${note?`<div class="note">${note}</div>`:''}
+<div class="note" style="margin-top:10px;background:#f4f7fc;border-left-color:${BLU}">
+Fonte dati: MIT DD23/2026 · Formule CMO ufficiali MIT (b1–d5) · Divisore 1.543h · Uso interno riservato ANCE Piemonte VdA
+</div>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`ANCE_Scenario_${title.replace(/\s/g,'_')}_${now.replace(/\//g,'-')}.html`;
+  a.click();
+}
+
+function esportaDumping() {
+  const rows = document.getElementById('dump-tbody')?.innerHTML || '';
+  if(!rows) { alert('Calcola prima l\'analisi dumping nel tab ⚖️ Dumping.'); return; }
+  const dest  = document.getElementById('exp-dest')?.value || '';
+  const now   = new Date().toLocaleDateString('it-IT');
+  const BLU   = '#1E3A5F';
+
+  const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+<title>Position Paper Anti-Dumping — ANCE Piemonte VdA</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:2cm;color:#1a1a2e}
+  h1{color:${BLU};font-size:16pt;border-bottom:3px solid #0ABAB5;padding-bottom:8px}
+  h2{color:${BLU};font-size:13pt}
+  table{width:100%;border-collapse:collapse;font-size:10pt;margin:12px 0}
+  th{background:${BLU};color:white;padding:7px 10px;text-align:left;font-size:8pt;text-transform:uppercase}
+  td{padding:6px 10px;border-bottom:1px solid #e5e7eb}
+  tr:nth-child(even) td{background:#f4f7fc}
+  .box{background:#FEF3C7;border-left:3px solid #F59E0B;padding:10px 14px;margin:14px 0;font-size:10pt}
+  @media print{body{margin:1.5cm}}
+</style></head><body>
+<h1>⚖️ Position Paper — Dumping Contrattuale nell'Edilizia</h1>
+<p style="color:#6b7280;font-size:10pt">ANCE Piemonte Valle d'Aosta · ${now} · Destinatario: ${dest}</p>
+<div class="box">
+Il CCNL Edilizia Industria è un contratto unico nazionale. Tuttavia il Costo Medio Orario (CMO) ministeriale varia fino al +59% tra province per effetto di elementi integrativi locali. Questa dispersione consente alle imprese con sede in province a basso CMO di aggiudicarsi appalti pubblici in Piemonte con un vantaggio strutturale di costo che non emerge nell'offerta economica presentata.
+</div>
+<h2>Vantaggio competitivo per provincia di origine</h2>
+<table><thead><tr>
+  <th>Prov. origine</th><th>CMO orig. €/h</th><th>CMO dest. €/h</th>
+  <th>Δ €/h</th><th>Risp./op./anno</th><th>Cantiere (10 op.)</th><th>Su appalto €1M</th><th>Impatto</th>
+</tr></thead><tbody>${rows}</tbody></table>
+<div class="box" style="background:#EBF9F8;border-left-color:#0ABAB5">
+Fonte: MIT DD23/2026 · CCNL Edilizia Industria 21/02/2025 · Elaborazione Suite Negoziale ANCE Piemonte VdA<br>
+Si chiede: revisione del criterio di anomalia dell'offerta negli appalti pubblici che tenga conto del CMO provinciale effettivo e non della sola verifica dell'applicazione del CCNL.
+</div></body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`ANCE_AntiDumping_${now.replace(/\//g,'-')}.html`;
+  a.click();
+}
+
+function esportaCIPL() {
+  if(!D_PROV?.length) { alert('Dati CIPL non ancora caricati.'); return; }
+  let csv = 'Provincia;Stato;EVR%;Mensa €/h;Reperibilità €/g;Una tantum;Trasferta\n';
+  D_PROV.forEach(p => {
+    csv += `${p.PROVINCIA};${p.STATO||'—'};${p.EVR_PERC||''};${p.MENSA_OPE_ORA||''};${p.REP_GIORN||''};${p.UNA_TANTUM||''};${p.TRASFERTA||''}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`ANCE_CIPL_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+function esportaCSV() {
+  if(!C.RAW?.length) { alert('Dati CMO non ancora caricati.'); return; }
+  let csv = 'Regione;Sigla;Città;Area;CMO_lv1;CMO_lv2;CMO_lv3;CMO_lv4\n';
+  C.RAW.forEach(r => {
+    csv += `${r.r};${r.p};${r.c};${r.a};${r.lv1||''};${r.lv2||''};${r.lv3||''};${r.lv4||''}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`CMO_MIT_tutte_province_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════════
+// SIMULATORE PEREQUATIVO (aggiunto agli Scenari)
+// ══════════════════════════════════════════════════
+function renderPerequazione() {
+  const card = document.getElementById('card-perequazione');
+  if(!card || !DET_LOADED || !C.RAW?.length) return;
+  card.style.display='block';
+
+  const tot  = parseFloat(document.getElementById('sc-tot')?.value)||0;
+  if(!tot){ card.style.display='none'; return; }
+  const nTr  = parseInt(document.getElementById('sc-tr')?.value)||3;
+  const lv   = 'lv3';
+
+  // Calcola percentile 25 del CMO lv3
+  const all_cmo = C.RAW.map(r=>r[lv]).filter(Boolean).sort((a,b)=>a-b);
+  const p25  = all_cmo[Math.floor(all_cmo.length*0.25)];
+  const p75  = all_cmo[Math.floor(all_cmo.length*0.75)];
+
+  // Scenari: piatto vs +15% basse vs +30% basse
+  const parMap={lv1:100,lv2:117,lv3:130,lv4:140};
+  const par=parMap[lv]||100;
+  const nRin=1; // 1 rinnovo
+
+  const rows=C.RAW.map(r=>{
+    const cmo=r[lv]||0; if(!cmo) return null;
+    const isBassa=cmo<p25, isAlta=cmo>p75;
+    const dFlat=round2((tot*par/100)/173);
+    const dPer15=isBassa?round2(dFlat*1.15):dFlat;
+    const dPer30=isBassa?round2(dFlat*1.30):dFlat;
+    return {sig:r.p, city:r.c, cmo, isBassa, isAlta,
+      cmoFlat:round2(cmo+dFlat), cmoPer15:round2(cmo+dPer15), cmoPer30:round2(cmo+dPer30)};
+  }).filter(Boolean).sort((a,b)=>a.cmo-b.cmo);
+
+  const maxCmo=Math.max(...rows.map(r=>r.cmo));
+  const gapOggi=round2(maxCmo-rows[0].cmo);
+  const gapFlat=round2(Math.max(...rows.map(r=>r.cmoFlat))-Math.min(...rows.map(r=>r.cmoFlat)));
+  const gapP15 =round2(Math.max(...rows.map(r=>r.cmoPer15))-Math.min(...rows.map(r=>r.cmoPer15)));
+  const gapP30 =round2(Math.max(...rows.map(r=>r.cmoPer30))-Math.min(...rows.map(r=>r.cmoPer30)));
+
+  document.getElementById('peq-sub').innerHTML=
+    `Base: €${tot.toFixed(2)} su Par.100 · 25° perc. CMO (soglia "bassa"): €${p25?.toFixed(2)} · Gap attuale: €${gapOggi.toFixed(2)}/h`;
+
+  document.getElementById('peq-gap').innerHTML=`
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      ${[
+        ['Gap oggi', gapOggi, '#6b7280'],
+        ['Dopo 1 rinnovo piatto', gapFlat, '#b91c1c'],
+        ['Con +15% prov. basse', gapP15, '#f97316'],
+        ['Con +30% prov. basse', gapP30, '#15803d'],
+      ].map(([l,v,c])=>`<div style="flex:1;min-width:140px;background:var(--g100);border-radius:8px;padding:10px 14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g500);margin-bottom:3px">${l}</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:${c}">€${v.toFixed(2)}/h</div>
+        <div style="font-size:10px;color:var(--g500)">rid. ${round2((1-v/gapOggi)*100).toFixed(1)}%</div>
+      </div>`).join('')}
+    </div>`;
+
+  const extreme=[...rows.slice(0,8), ...rows.slice(-8)];
+  document.getElementById('peq-tbody').innerHTML=extreme.map((r,i)=>{
+    const isSep=i===7;
+    return (isSep?`<tr><td colspan="6" style="padding:3px 10px;font-size:10px;color:var(--g400);background:var(--g100)">… province intermedie …</td></tr>`:'')+`<tr>
+      <td style="font-weight:600;color:var(--blu)">${r.sig} · ${r.city}
+        ${r.isBassa?'<span style="margin-left:5px;font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:4px;font-weight:700">BASSA</span>':''}
+        ${r.isAlta?'<span style="margin-left:5px;font-size:9px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:4px;font-weight:700">ALTA</span>':''}
+      </td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.cmo.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono)">€${r.cmoFlat.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono);${r.isBassa?'color:#f97316;font-weight:700':''}">€${r.cmoPer15.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono);${r.isBassa?'color:#15803d;font-weight:700':''}">€${r.cmoPer30.toFixed(2)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:${r.isBassa?'#15803d':'var(--g400)'};font-weight:${r.isBassa?700:400}">
+        ${r.isBassa?`+€${round2(r.cmoPer30-r.cmoFlat).toFixed(2)}`:'—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
 
 </script>
 </body>
