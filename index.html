@@ -274,7 +274,7 @@ body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--b
 /* MAPPA */
 #view-map { background: var(--bg); }
 .map-shell { display:flex; flex-direction:column; height:calc(100vh - var(--header-h) - var(--tabbar-h)); min-height:500px; }
-.map-toolbar { display:flex; align-items:center; gap:14px; padding:10px 24px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; flex-shrink:0; }
+.map-toolbar { display:flex; align-items:center; gap:14px; padding:12px 24px; background:var(--surface); border-bottom:2px solid var(--border-med); flex-wrap:wrap; flex-shrink:0; min-height:52px; }
 .map-toolbar label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-4); }
 .map-toolbar select, .map-toolbar input[type=range] { font-family:var(--font); font-size:12px; border:1px solid var(--border-med); border-radius:3px; padding:5px 8px; background:var(--surface); color:var(--text); }
 .map-container { flex:1; position:relative; overflow:hidden; display:flex; }
@@ -473,9 +473,9 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
     <div class="map-toolbar">
       <label>Livello</label>
       <select id="map-lv" onchange="renderMap()">
-        <option value="lv1">1° livello — operaio comune</option>
+        <option value="lv1" selected>1° livello — operaio comune</option>
         <option value="lv2">2° livello — qualificato</option>
-        <option value="lv3" selected>3° livello — specializzato</option>
+        <option value="lv3">3° livello — specializzato</option>
         <option value="lv4">4° livello — spec. superiore</option>
       </select>
       <label>Vista</label>
@@ -1251,9 +1251,9 @@ function renderMap() {
   svg.attr('viewBox', `0 0 ${w} ${h}`);
 
   mapProjection = d3.geoMercator()
-    .center([12.5, 42.0])
-    .scale(2200)
-    .translate([w/2, h/2]);
+    .center([12.5, 43.5])
+    .scale(2000)
+    .translate([w/2, h/2 + 40]);
 
   mapPathGen = d3.geoPath().projection(mapProjection);
 
@@ -1440,22 +1440,6 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
