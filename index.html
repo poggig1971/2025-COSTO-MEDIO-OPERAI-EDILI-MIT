@@ -1176,7 +1176,7 @@ function switchView(v){
   if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
   if(v==='map'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData(); }
   if(v==='anatomia'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);initAnatomia();}},400);}else initAnatomia(); }
-  if(v==='convergenza'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);calcolaConvergenza();}},400);}else calcolaConvergenza(); }
+  if(v==='convergenza'){ if(!C.loaded||!C.RAW?.length){loadData();const wt=setInterval(()=>{if(C.loaded&&C.RAW?.length){clearInterval(wt);calcolaConvergenza();}},300);}else calcolaConvergenza(); }
 }
 
 /* ═══ PRINT ══════════════════════════════════════════════════════════════════ */
@@ -1669,11 +1669,14 @@ const ANAT_LAYERS = {
 };
 
 function getAnatValue(sig, lv, layer) {
-  const d = DET_DATA.get(sig);
+  const d = C.DET_DATA.get(sig);
   if(!d) return null;
   if(layer==='ce') {
-    // ce_aliquota è un numero es. 0.0731
-    return d.ce_aliquota ? round2(d.ce_aliquota * 100) : null;
+    // cassaPercent è stringa tipo "7,31%" — la normalizziamo
+    const cp = d.cassaPercent;
+    if(!cp) return null;
+    const n = parseFloat(cp.replace('%','').replace(',','.'));
+    return isNaN(n) ? null : n;
   }
   const keyMap = { trasp:'trasp', mensa:'mensa', cmo:'cmo' };
   const k = keyMap[layer];
@@ -1690,8 +1693,16 @@ function setAnatLayer(layer) {
 
 async function initAnatomia() {
   if(!mapLoaded) await loadMapData();
-  if(DET_LOADED) { renderAnatomia(); return; }
-  await loadDettagli();
+  // Usa i dati di dettaglio già disponibili nel CMO (C.DET_DATA)
+  // Se non caricati, carica prima il tab "Analisi per voce"
+  if(!C.detLoaded) {
+    document.getElementById('anat-status').textContent = 'Caricamento dati componenti…';
+    await new Promise(res => {
+      loadDettagli();
+      const wt = setInterval(()=>{ if(C.detLoaded){ clearInterval(wt); res(); }}, 300);
+      setTimeout(()=>{ clearInterval(wt); res(); }, 15000);
+    });
+  }
   renderAnatomia();
 }
 
@@ -1726,6 +1737,7 @@ function renderAnatomia() {
     if(sig) sig = MIT_AL[sig.toUpperCase()]||sig.toUpperCase();
     const v = sig ? getAnatValue(sig,lv,anatLayer) : null;
     f._av = v; f._asig = sig;
+    f._prov_name = f.properties.prov_name || sig || '';
     if(v && v>0) vals.push(v);
   });
 
@@ -1755,7 +1767,7 @@ function renderAnatomia() {
       d3.select(this).attr('opacity',1).attr('stroke-width','0.8');
       const v=f._av;
       tooltip.style.display='block';
-      tooltip.innerHTML=`<strong>${f.properties.prov_name||f._asig||'—'} (${f._asig||'?'})</strong>
+      tooltip.innerHTML=`<strong>${f._prov_name||f._asig||'—'} (${f._asig||'?'})</strong>
         <div style="color:#6b7280;font-size:11px">${cfg.label}</div>
         ${v?`<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:${cScale(v)};margin-top:4px">${isPercent?v.toFixed(2)+'%':'€'+v.toFixed(2)+'/h'}</div>`:'<div style="color:#9ca3af;font-size:11px;margin-top:4px">Dato non disponibile</div>'}`;
     })
@@ -1790,7 +1802,7 @@ function anatReset(){anatZoomTransform=d3.zoomIdentity;d3.select('#anat-svg').tr
 
 /* ═══ CONVERGENZA ════════════════════════════════════════════════════════ */
 function calcolaConvergenza() {
-  if(!C.loaded || !DET_LOADED) return;
+  if(!C.loaded || !C.RAW?.length) return;
   const lv      = document.getElementById('cv-lv')?.value || 'lv3';
   const flat    = parseFloat(document.getElementById('cv-flat')?.value) || 100;
   const percEx  = parseFloat(document.getElementById('cv-perc')?.value) || 20;
@@ -1879,6 +1891,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
