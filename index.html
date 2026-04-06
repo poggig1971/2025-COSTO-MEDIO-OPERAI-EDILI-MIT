@@ -549,20 +549,20 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       </div>
       <aside class="map-sidebar" id="map-sidebar">
         <!-- COMPONENTE — dentro la sidebar sempre visibile -->
-        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px">
+        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px;margin-top:8px">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1e3a8a;margin-bottom:6px">🔬 Componente</div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="cmo" checked onchange="document.getElementById('map-component').value='cmo';renderMap()"> CMO totale €/h
+              <input type="radio" name="map-comp" value="cmo" checked onchange="switchMapComp('cmo')"> CMO totale €/h
             </label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="trasp" onchange="document.getElementById('map-component').value='trasp';renderMap()"> 🚗 Trasporto €/h
+              <input type="radio" name="map-comp" value="trasp" onchange="switchMapComp('trasp')"> 🚗 Trasporto €/h
             </label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="mensa" onchange="document.getElementById('map-component').value='mensa';renderMap()"> 🍽️ Mensa €/h
+              <input type="radio" name="map-comp" value="mensa" onchange="switchMapComp('mensa')"> 🍽️ Mensa €/h
             </label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="ce" onchange="document.getElementById('map-component').value='ce';renderMap()"> 🏗️ Cassa Edile %
+              <input type="radio" name="map-comp" value="ce" onchange="switchMapComp('ce')"> 🏗️ Cassa Edile %
             </label>
           </div>
         </div>
@@ -1513,6 +1513,33 @@ function findRegFromGeoName(name) {
   return reg ? reg.r : null;
 }
 
+
+function switchMapComp(comp) {
+  // Aggiorna il select nascosto usato da getProvValue/getRegValue
+  const sel = document.getElementById('map-component');
+  if(sel) sel.value = comp;
+
+  // Per CMO renderizza subito — i dati RAW sono sempre disponibili
+  if(comp === 'cmo') { renderMap(); return; }
+
+  // Per trasporto/mensa/CE servono i dettagli
+  if(C.detLoaded) {
+    renderMap();
+  } else {
+    // Carica i dettagli e poi renderizza
+    const status = document.getElementById('map-status');
+    if(status) status.textContent = 'Caricamento dati componente…';
+    loadDettagli();
+    const wt = setInterval(() => {
+      if(C.detLoaded) {
+        clearInterval(wt);
+        renderMap();
+      }
+    }, 300);
+    setTimeout(() => clearInterval(wt), 15000);
+  }
+}
+
 function renderMap() {
   if(!mapLoaded || !C.RAW.length) return;
   const lv   = document.getElementById('map-lv')?.value || 'lv3';
@@ -1983,6 +2010,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
