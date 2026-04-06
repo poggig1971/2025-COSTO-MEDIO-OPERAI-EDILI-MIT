@@ -1225,7 +1225,7 @@ function normProvName(s) {
     .toLowerCase()
     .replace(/\/.*/, '')           // "Bolzano/Bozen" → "bolzano"
     .replace(/vallée.*/, '')        // "Vallée d'Aoste" → ""
-    .replace(/['']/g, "'")
+    .replace(/[''`]/g, ' ')        // apostrofi → spazio
     .replace(/[-–]/g, ' ')         // trattini → spazio
     .replace(/[àá]/g,'a').replace(/[èé]/g,'e').replace(/[ì]/g,'i')
     .replace(/[òó]/g,'o').replace(/[ùú]/g,'u')
@@ -1277,7 +1277,9 @@ function findSiglaFromGeoName(name) {
     'barletta andria trani': 'BA',  // accorpata con Bari
     'monza e della brianza': 'MI',  // accorpata con Milano
     'lodi': 'MI',             // accorpata con Milano
-    'sud sardegna': 'CA',     // usa Cagliari come proxy
+    'sud sardegna': 'CA',
+    'lodi': 'MI',
+    'reggio nell emilia': 'RE',
   };
   if(ACCORPATE[norm]) return ACCORPATE[norm];
   // Cerca nel RAW per città o sigla
@@ -1496,25 +1498,6 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
