@@ -1669,16 +1669,22 @@ const ANAT_LAYERS = {
 };
 
 function getAnatValue(sig, lv, layer) {
+  if(layer==='cmo') {
+    // Per CMO usa C.RAW direttamente — sempre disponibile
+    const row = C.RAW.find(d=>d.p===sig);
+    return row?.[lv] || null;
+  }
+  // Per componenti (trasp/mensa/ce) usa DET_DATA
+  if(!C.detLoaded) return null;
   const d = C.DET_DATA.get(sig);
   if(!d) return null;
   if(layer==='ce') {
-    // cassaPercent è stringa tipo "7,31%" — la normalizziamo
     const cp = d.cassaPercent;
     if(!cp) return null;
     const n = parseFloat(cp.replace('%','').replace(',','.'));
     return isNaN(n) ? null : n;
   }
-  const keyMap = { trasp:'trasp', mensa:'mensa', cmo:'cmo' };
+  const keyMap = { trasp:'trasp', mensa:'mensa' };
   const k = keyMap[layer];
   if(!k) return null;
   return d.data[k]?.[lv] || null;
@@ -1692,15 +1698,21 @@ function setAnatLayer(layer) {
 }
 
 async function initAnatomia() {
-  if(!mapLoaded) await loadMapData();
-  // Usa i dati di dettaglio già disponibili nel CMO (C.DET_DATA)
-  // Se non caricati, carica prima il tab "Analisi per voce"
-  if(!C.detLoaded) {
+  if(!mapLoaded) {
+    document.getElementById('anat-status').textContent = 'Caricamento GeoJSON…';
+    await loadMapData();
+  }
+  if(!C.loaded || !C.RAW?.length) {
+    document.getElementById('anat-status').textContent = 'In attesa dati CMO…';
+    await new Promise(res=>{const wt=setInterval(()=>{if(C.RAW?.length){clearInterval(wt);res();}},300);});
+  }
+  // Per trasporto/mensa/CE carica dettagli se non già disponibili
+  if(!C.detLoaded && (anatLayer==='trasp'||anatLayer==='mensa'||anatLayer==='ce')) {
     document.getElementById('anat-status').textContent = 'Caricamento dati componenti…';
-    await new Promise(res => {
-      loadDettagli();
-      const wt = setInterval(()=>{ if(C.detLoaded){ clearInterval(wt); res(); }}, 300);
-      setTimeout(()=>{ clearInterval(wt); res(); }, 15000);
+    loadDettagli();
+    await new Promise(res=>{
+      const wt=setInterval(()=>{if(C.detLoaded){clearInterval(wt);res();}},300);
+      setTimeout(()=>{clearInterval(wt);res();},12000);
     });
   }
   renderAnatomia();
@@ -1810,13 +1822,12 @@ function calcolaConvergenza() {
   const nRin    = parseInt(document.getElementById('cv-n')?.value) || 4;
   const target  = parseFloat(document.getElementById('cv-target')?.value) || 30;
 
-  // Raccolta dati province
+  // C.RAW ha direttamente d.p(sigla), d.c(città), d.r(regione), d.lv1..lv4(CMO)
   const rows = [];
-  DET_DATA.forEach((d,sig) => {
-    const cmoNow = d.data.cmo?.[lv] || 0;
+  C.RAW.forEach(d => {
+    const cmoNow = d[lv] || 0;
     if(!cmoNow) return;
     const isBassa = cmoNow < soglia;
-    // delta orario piatto
     const parMap = {lv1:100,lv2:117,lv3:130,lv4:140};
     const par = parMap[lv]||100;
     const deltaOraFlat = round2((flat * par/100) / 173);
@@ -1827,7 +1838,7 @@ function calcolaConvergenza() {
     let cmoFlat = cmoNow, cmoPer = cmoNow;
     for(let i=0;i<nRin;i++){ cmoFlat=round2(cmoFlat+deltaOraFlat); cmoPer=round2(cmoPer+deltaOraPerc); }
 
-    rows.push({ sig, city:d.c, reg:d.r, cmoNow, isBassa, cmoFlat, cmoPer, deltaOraFlat, deltaOraPerc });
+    rows.push({ sig:d.p, city:d.c, reg:d.r, cmoNow, isBassa, cmoFlat, cmoPer, deltaOraFlat, deltaOraPerc });
   });
 
   rows.sort((a,b)=>b.cmoNow-a.cmoNow);
@@ -1891,6 +1902,13 @@ loadData();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
