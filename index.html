@@ -304,8 +304,8 @@ body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--b
 .anat-container { flex:1;position:relative;overflow:hidden;display:flex; }
 
 /* CONVERGENZA */
-#view-convergenza { background:var(--bg); }
-.conv-shell { padding:24px;max-width:1100px;margin:0 auto; }
+#view-convergenza { background:var(--bg);overflow-y:auto;height:calc(100vh - var(--header-h,64px) - var(--tabbar-h,48px)); }
+.conv-shell { padding:24px;max-width:1100px;margin:0 auto;padding-bottom:60px; }
 .conv-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px; }
 .conv-title { font-size:14px;font-weight:700;color:var(--blue);margin-bottom:4px; }
 .conv-sub { font-size:12px;color:var(--text-3);margin-bottom:16px; }
@@ -374,7 +374,6 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
   <button class="tab-btn on" data-view="agg" onclick="switchView('agg')">Costi aggregati</button>
   <button class="tab-btn"    data-view="det" onclick="switchView('det')">Analisi per voce</button>
   <button class="tab-btn" data-view="map" onclick="switchView('map')">🗺️ Mappa Italia</button>
-  <button class="tab-btn" data-view="anatomia" onclick="switchView('anatomia')">🔬 Anatomia del gap</button>
   <button class="tab-btn" data-view="convergenza" onclick="switchView('convergenza')">🎯 Convergenza</button>
   <div class="tab-bar-sep"></div>
   <span class="tab-bar-info" id="tab-info"></span>
@@ -553,7 +552,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
 </div>
 
 
-<div id="view-anatomia" class="view-section">
+<div id="view-anatomia" class="view-section" style="display:none!important">
   <div class="anat-shell">
     <div class="anat-toolbar">
       <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)">Componente da visualizzare</label>
@@ -1175,7 +1174,7 @@ function switchView(v){
   document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
   if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
   if(v==='map'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData(); }
-  if(v==='anatomia'){ if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);initAnatomia();}},400);}else initAnatomia(); }
+  // anatomia integrata nella mappa
   if(v==='convergenza'){ if(!C.loaded||!C.RAW?.length){loadData();const wt=setInterval(()=>{if(C.loaded&&C.RAW?.length){clearInterval(wt);calcolaConvergenza();}},300);}else calcolaConvergenza(); }
 }
 
@@ -1343,13 +1342,41 @@ async function loadMapData() {
 function getProvValue(sigla, lv) {
   const cat = C;
   const row = cat.RAW.find(d => d.p === sigla);
-  return row ? row[lv] : null;
+  if(!row) return null;
+  const comp = document.getElementById('map-component')?.value || 'cmo';
+  if(comp === 'cmo') return row[lv] || null;
+  // Per componenti usa DET_DATA se disponibile
+  if(!cat.detLoaded || !cat.DET_DATA) return row[lv] || null;
+  const det = cat.DET_DATA.get(sigla);
+  if(!det) return null;
+  if(comp === 'ce') {
+    const cp = det.cassaPercent;
+    if(!cp) return null;
+    const n = parseFloat(cp.replace('%','').replace(',','.'));
+    return isNaN(n) ? null : n;
+  }
+  const keyMap = { trasp:'trasp', mensa:'mensa' };
+  const k = keyMap[comp];
+  return k ? (det.data[k]?.[lv] || null) : null;
 }
 
 function getRegValue(regName, lv) {
   const rows = C.RAW.filter(d => d.r === regName);
   if(!rows.length) return null;
-  return d3.mean(rows, d => d[lv]);
+  const comp = document.getElementById('map-component')?.value || 'cmo';
+  if(comp === 'cmo') return d3.mean(rows, d => d[lv]);
+  // Per componenti usa media DET_DATA se disponibile
+  if(!C.detLoaded || !C.DET_DATA) return d3.mean(rows, d => d[lv]);
+  const vals = rows.map(d => {
+    const det = C.DET_DATA.get(d.p);
+    if(!det) return null;
+    if(comp==='ce'){
+      const cp=det.cassaPercent; if(!cp) return null;
+      return parseFloat(cp.replace('%','').replace(',','.'));
+    }
+    return det.data[{trasp:'trasp',mensa:'mensa'}[comp]]?.[lv] || null;
+  }).filter(v=>v!==null);
+  return vals.length ? d3.mean(vals) : null;
 }
 
 // Normalizza nome provincia per il matching
@@ -1520,8 +1547,12 @@ function renderMap() {
     'linear-gradient(to right,#15803d,#fbbf24,#b91c1c)';
   document.getElementById('map-legend-labels').innerHTML =
     `<span>€${vMin?.toFixed(2)}</span><span>€${((p05+p95)/2)?.toFixed(2)}</span><span>€${vMax?.toFixed(2)}</span>`;
+  const comp = document.getElementById('map-component')?.value || 'cmo';
+  const compLabel = {cmo:'CMO totale',trasp:'Trasporto',mensa:'Mensa',ce:'Cassa Edile %'}[comp]||'CMO';
+  const isPercComp = comp==='ce';
+  const fmtV = v => isPercComp ? v?.toFixed(2)+'%' : '€'+v?.toFixed(2);
   document.getElementById('map-status').textContent =
-    `${values.length} ${mode} · ${lvLabel} · min €${vMin?.toFixed(2)} — max €${vMax?.toFixed(2)} (gradiente: €${p05?.toFixed(2)}–€${p95?.toFixed(2)})`;
+    `${values.length} ${mode} · ${lvLabel} · ${compLabel} · min ${fmtV(vMin)} — max ${fmtV(vMax)}`;
 
   const tooltip = document.getElementById('map-tooltip');
 
@@ -1553,12 +1584,15 @@ function renderMap() {
       const sigla = mode==='province' ? (f._sig || findSiglaFromGeoName(f._name)) : null;
       const rawRow = sigla ? C.RAW.find(d=>d.p===sigla) : null;
       const val = f._val;
+      const compSel = document.getElementById('map-component')?.value || 'cmo';
+      const isPercTt = compSel==='ce';
+      const compLabelTt = {cmo:'CMO',trasp:'Trasporto',mensa:'Mensa',ce:'CE %'}[compSel]||'CMO';
       tooltip.style.display = 'block';
       tooltip.innerHTML = `
         <strong>${f._name}${sigla?' ('+sigla+')':''}</strong>
         <div style="color:#6b7280;font-size:11px">${rawRow?.r||''}</div>
-        ${val ? `<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:${colorScale(val)};margin-top:4px">€${val.toFixed(2)}/h</div>` : '<div style="color:#9ca3af;font-size:11px;margin-top:4px">Dato non disponibile</div>'}
-        <div style="font-size:10px;color:#9ca3af;margin-top:3px">${lvLabel}</div>`;
+        ${val ? `<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:${colorScale(val)};margin-top:4px">${isPercTt?val.toFixed(2)+'%':'€'+val.toFixed(2)+'/h'}</div>` : '<div style="color:#9ca3af;font-size:11px;margin-top:4px">Dato non disponibile</div>'}
+        <div style="font-size:10px;color:#9ca3af;margin-top:3px">${lvLabel} · ${compLabelTt}</div>`;
     })
     .on('mousemove', e => {
       tooltip.style.left = (e.clientX+14)+'px';
@@ -1902,23 +1936,3 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
