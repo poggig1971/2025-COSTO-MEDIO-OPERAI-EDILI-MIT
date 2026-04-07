@@ -9,7 +9,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231e3a8a'/><text x='50' y='72' font-size='62' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>€</text></svg>">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -219,9 +218,6 @@ body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--b
 .tab-btn.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .tab-bar-sep{flex:1}
 .tab-bar-info{font-size:10px;color:var(--text-4)}
-
-/* APP BODY — offset for fixed header + tab-bar */
-.app-body{padding-top:calc(var(--header-h) + var(--tabbar-h))}
 
 /* VIEWS */
 .view-section{display:none}
@@ -526,10 +522,10 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       <select id="map-gradient" onchange="renderMap()">
         <option value="rg">Verde → Rosso (min→max)</option>
         <option value="blu">Bianco → Blu</option>
-        <option value="cmo">Arancio </option>
+        <option value="cmo">Arancio ANCE</option>
       </select>
       <div style="display:flex;align-items:center;gap:6px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:6px;padding:5px 12px;cursor:default;flex-shrink:0">
-        <span style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;white-space:nowrap">⬇️</span>
+        <span style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;white-space:nowrap">🔬 Componente</span>
         <select id="map-component" onchange="renderMap()" style="border:none;background:transparent;font-family:var(--font);font-size:12px;color:#1e3a8a;font-weight:600;cursor:pointer;outline:none;padding:0 2px">
           <option value="cmo" selected>CMO totale €/h</option>
           <option value="trasp">Trasporto €/h</option>
@@ -537,8 +533,6 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
           <option value="ce">Cassa Edile %</option>
         </select>
       </div>
-
-      
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div id="map-status" style="font-size:11px;color:var(--text-4)">Caricamento dati…</div>
         <button onclick="mapReset()" style="padding:5px 10px;font-family:var(--font);font-size:11px;font-weight:600;border:1px solid var(--border-med);border-radius:3px;background:var(--surface);cursor:pointer;color:var(--text-3)">↺ Reset zoom</button>
@@ -556,7 +550,23 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       </div>
       <aside class="map-sidebar" id="map-sidebar">
         <!-- COMPONENTE — dentro la sidebar sempre visibile -->
-        
+        <div id="comp-selector-box" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px;position:sticky;top:0;z-index:10">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1e3a8a;margin-bottom:6px">🔬 Componente</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
+              <input type="radio" name="map-comp" value="cmo" checked onchange="switchMapComp('cmo')"> CMO totale €/h
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
+              <input type="radio" name="map-comp" value="trasp" onchange="switchMapComp('trasp')"> 🚗 Trasporto €/h
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
+              <input type="radio" name="map-comp" value="mensa" onchange="switchMapComp('mensa')"> 🍽️ Mensa €/h
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
+              <input type="radio" name="map-comp" value="ce" onchange="switchMapComp('ce')"> 🏗️ Cassa Edile %
+            </label>
+          </div>
+        </div>
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:8px">Legenda</div>
         <div class="legend-bar" id="map-legend-bar"></div>
         <div class="legend-labels" id="map-legend-labels"><span>—</span><span>—</span><span>—</span></div>
@@ -1043,6 +1053,8 @@ function switchCat(key){
   renderLvBtns();
   document.querySelectorAll('.area-btn').forEach(b=>b.classList.toggle('on',C.aFilter.has(b.dataset.a)));
   document.querySelectorAll('#mseg .mode-btn').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===C.mode));
+  // Aggiorna opzioni livello nel selettore mappa
+  updateMapLvSelect();
   if(!C.loaded){
     if(C.key==='operai') loadData();
     else if(CAT_OP.loaded) loadImpData();
@@ -1057,10 +1069,6 @@ function switchCat(key){
       document.getElementById('tab-info').textContent=C.DET_DATA.size+' province caricate';
       detRenderList(); detRenderChips(); detRenderTable();
     }
-    // Re-render vista attiva se mappa o convergenza
-    const activeView = document.querySelector('.view-section.active')?.id;
-    if(activeView === 'view-map' && mapLoaded) renderMap();
-    if(activeView === 'view-convergenza') calcolaConvergenza();
   }
 }
 
@@ -1071,6 +1079,18 @@ function renderLvBtns(){
     if(!row) return;
     row.innerHTML=C.LVS.map((lv,i)=>`<button class="lv-btn${curLv===lv?' on':''}" data-lv="${lv}" onclick="${fn}(this)">${C.LV_SHT[i]}</button>`).join('');
   });
+}
+
+/* ─── UPDATE MAP LEVEL SELECT ───────────────────────────────────────────── */
+function updateMapLvSelect() {
+  const sel = document.getElementById('map-lv');
+  if(!sel) return;
+  const curVal = sel.value;
+  sel.innerHTML = C.LVS.map((lv, i) =>
+    `<option value="${lv}"${curVal===lv?' selected':''}>${C.LV_LBL[i]||lv}</option>`
+  ).join('');
+  // Se il valore corrente non esiste nei nuovi livelli, reset al primo
+  if(!C.LVS.includes(curVal)) sel.value = C.LVS[0];
 }
 
 /* ═══ ITEMS + BENCHMARK ═════════════════════════════════════════════════════ */
@@ -1213,31 +1233,20 @@ function render(){
 }
 
 /* ═══ SWITCH VIEW ═══════════════════════════════════════════════════════════ */
-function ensureDataLoaded(cb){
-  if(C.loaded && C.RAW?.length){ cb(); return; }
-  // Chiama il loader giusto in base alla categoria attiva
-  if(C.key==='impiegati'){ if(!CAT_IMP.loaded) loadImpData(); }
-  else { if(!CAT_OP.loaded) loadData(); }
-  let elapsed=0;
-  const wt=setInterval(()=>{
-    elapsed+=300;
-    if(C.loaded && C.RAW?.length){ clearInterval(wt); cb(); }
-    else if(elapsed>20000){ clearInterval(wt); console.error('ensureDataLoaded timeout'); }
-  },300);
-}
-
 function switchView(v){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   document.querySelectorAll('.view-section').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
   if(v==='det'&&C.key==='operai'&&!C.detLoaded){ C.detLoaded=true; loadDettagli(); }
   if(v==='map'){
+    // Scroll sidebar a top per mostrare il selettore componente
     setTimeout(()=>{ const sb=document.getElementById('map-sidebar'); if(sb) sb.scrollTop=0; }, 100);
-    ensureDataLoaded(()=>loadMapData());
+    if(!C.loaded){loadData();const wt=setInterval(()=>{if(C.loaded){clearInterval(wt);loadMapData();}},400);}else loadMapData();
   }
+  // anatomia integrata nella mappa
   if(v==='convergenza'){
     const cvEl=document.getElementById('view-convergenza');
     if(cvEl) cvEl.scrollTop=0;
-    ensureDataLoaded(()=>calcolaConvergenza());
+    if(!C.loaded||!C.RAW?.length){loadData();const wt=setInterval(()=>{if(C.loaded&&C.RAW?.length){clearInterval(wt);calcolaConvergenza();}},300);}else calcolaConvergenza();
   }
 }
 
@@ -1340,8 +1349,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
 renderLvBtns();
 
 /* ═══ MAPPA ITALIA ══════════════════════════════════════════════════════ */
-const MAP_TOPO_PROV = 'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/topojson/limits_IT_provinces.topo.json';
-const MAP_TOPO_REG  = 'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/topojson/limits_IT_regions.topo.json';
+const MAP_GEOJSON_PROV = 'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/geojson/limits_IT_provinces.geojson';
+const MAP_GEOJSON_REG  = 'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/geojson/limits_IT_regions.geojson';
 
 let mapGeoProvince = null;
 let mapGeoRegioni  = null;
@@ -1384,31 +1393,21 @@ function getGradient(mode) {
 }
 
 async function loadMapData() {
-  if(mapLoaded) { renderMap(); return; }
-  const statusEl = document.getElementById('map-status');
-  statusEl.textContent = 'Caricamento mappa (TopoJSON)…';
+  if(mapLoaded) return;
+  document.getElementById('map-status').textContent = 'Caricamento GeoJSON…';
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    const [tp, tr] = await Promise.all([
-      fetch(MAP_TOPO_PROV, {signal:controller.signal}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}),
-      fetch(MAP_TOPO_REG,  {signal:controller.signal}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    const [gp, gr] = await Promise.all([
+      d3.json(MAP_GEOJSON_PROV),
+      d3.json(MAP_GEOJSON_REG)
     ]);
-    clearTimeout(timeout);
-    // topojson-client: converte TopoJSON → GeoJSON FeatureCollection
-    const provKey = Object.keys(tp.objects)[0];
-    const regKey  = Object.keys(tr.objects)[0];
-    mapGeoProvince = topojson.feature(tp, tp.objects[provKey]);
-    mapGeoRegioni  = topojson.feature(tr, tr.objects[regKey]);
-    if(!mapGeoProvince?.features?.length || !mapGeoRegioni?.features?.length) throw new Error('TopoJSON vuoto');
+    mapGeoProvince = gp;
+    mapGeoRegioni  = gr;
     mapLoaded = true;
-    statusEl.textContent = 'Pronto';
-    console.log('Mappa: province='+mapGeoProvince.features.length+', regioni='+mapGeoRegioni.features.length);
+    document.getElementById('map-status').textContent = 'Pronto';
     renderMap();
   } catch(e) {
-    console.error('loadMapData error:', e);
-    const msg = e.name==='AbortError' ? 'Timeout 20s' : e.message;
-    statusEl.innerHTML = '⚠️ '+msg+' — <button onclick="mapLoaded=false;loadMapData()" style="font:inherit;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">riprova</button>';
+    document.getElementById('map-status').textContent = '⚠️ Errore caricamento mappa';
+    console.error(e);
   }
 }
 
@@ -1648,8 +1647,8 @@ function renderMap() {
   const p05 = valSorted[Math.floor(valSorted.length*0.05)] ?? vMin;
   const p95 = valSorted[Math.floor(valSorted.length*0.95)] ?? vMax;
   const colorScale = getGradient(grad).domain([p05, p95]).clamp(true);
-  const lvIdx = {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
-  const lvLabel = ['1° livello','2° livello','3° livello','4° livello'][lvIdx];
+  const lvIdx = C.LVS ? C.LVS.indexOf(lv) : {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
+  const lvLabel = C.LV_LBL ? (C.LV_LBL[lvIdx]||lv) : ['1° livello','2° livello','3° livello','4° livello'][lvIdx]||lv;
 
   // Legenda
   document.getElementById('map-legend-bar').style.background =
@@ -1772,8 +1771,8 @@ function showMapSidebar(f, lv, lvLabel, colorScale) {
 function mapClickFeature(name) {
   const svg = d3.select('#italy-svg');
   const lv   = document.getElementById('map-lv')?.value || 'lv3';
-  const lvIdx = {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
-  const lvLabel = ['1° livello','2° livello','3° livello','4° livello'][lvIdx];
+  const lvIdx = C.LVS ? C.LVS.indexOf(lv) : {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
+  const lvLabel = C.LV_LBL ? (C.LV_LBL[lvIdx]||lv) : ['1° livello','2° livello','3° livello','4° livello'][lvIdx]||lv;
   const grad = document.getElementById('map-gradient')?.value || 'rg';
   const mode = document.getElementById('map-view-mode')?.value || 'province';
   const geo = mode==='province' ? mapGeoProvince : mapGeoRegioni;
@@ -1961,8 +1960,7 @@ function anatReset(){anatZoomTransform=d3.zoomIdentity;d3.select('#anat-svg').tr
 
 /* ═══ CONVERGENZA ════════════════════════════════════════════════════════ */
 function calcolaConvergenza() {
-  if(!C.loaded || !C.RAW?.length) { console.warn('calcolaConvergenza: dati non pronti', C.loaded, C.RAW?.length); return; }
-  console.log('calcolaConvergenza: avvio con', C.RAW.length, 'province, categoria:', C.key);
+  if(!C.loaded || !C.RAW?.length) return;
   const lv      = document.getElementById('cv-lv')?.value || 'lv3';
   const flat    = parseFloat(document.getElementById('cv-flat')?.value) || 100;
   const percEx  = parseFloat(document.getElementById('cv-perc')?.value) || 20;
@@ -2016,32 +2014,26 @@ function calcolaConvergenza() {
 
   // Tabella — mostra province estreme + Piemonte
   const piemonte = ['TO','NO','AT','CN','AL','BI','VC','VB'];
-  const piemonteCities = ['TORINO','NOVARA','ASTI','CUNEO','ALESSANDRIA','BIELLA','VERCELLI','VERBANIA'];
-  const isPiemonte = r => piemonte.includes(r.sig.toUpperCase()) || piemonteCities.includes(r.city.toUpperCase());
-
-  // Indici originali in rows (sorted by cmoNow desc)
-  const toShow = [];
-  rows.forEach((r,idx) => {
-    if(idx < 5 || idx >= rows.length-5 || isPiemonte(r)){
-      toShow.push({...r, _origIdx: idx});
-    }
-  });
+  const toShow = rows.filter(r=>
+    rows.indexOf(r)<5 ||
+    rows.indexOf(r)>=rows.length-5 ||
+    piemonte.includes(r.sig)
+  );
 
   const tbody = document.getElementById('cv-tbody');
-  if(tbody) tbody.innerHTML = toShow.map((r,ti) => {
+  if(tbody) tbody.innerHTML = toShow.map(r=>{
     const extraPer = round2(r.cmoPer - r.cmoFlat);
+    const ridGap = r.isBassa ? round2(gapOggi - gapPer) : '—';
     const barW = Math.round((r.cmoNow/cmoMax)*100);
     const barWFlat = Math.round((r.cmoFlat/cmoMaxFlat)*100);
     const barWPer  = Math.round((r.cmoPer/cmoMaxPer)*100);
-    // Separatore: se c'è un salto > 1 posizione tra questa riga e la precedente
-    const prevIdx = ti > 0 ? toShow[ti-1]._origIdx : -1;
-    const showSep = ti > 0 && r._origIdx - prevIdx > 1;
-    return (showSep?`<tr><td colspan="7" style="padding:4px 12px;font-size:10px;color:var(--text-3);background:var(--bg)">… province intermedie …</td></tr>`:'') + `<tr>
+    const isSep = rows.indexOf(r)===4 && toShow[toShow.indexOf(r)+1] && rows.indexOf(toShow[toShow.indexOf(r)+1])>5;
+    return (isSep?`<tr><td colspan="7" style="padding:4px 12px;font-size:10px;color:var(--text-3);background:var(--bg)">… province intermedie …</td></tr>`:'') + `<tr>
       <td style="font-weight:600;color:var(--blue)">${r.sig} · ${r.city}${r.isBassa?'<span style="margin-left:6px;font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:4px;font-weight:700">BASSA</span>':''}</td>
       <td>€${r.cmoNow.toFixed(2)}</td>
       <td>€${r.cmoFlat.toFixed(2)}</td>
       <td style="${r.isBassa?'color:#15803d;font-weight:700':''}">€${r.cmoPer.toFixed(2)}</td>
-      <td style="${r.isBassa?'color:#15803d;font-weight:700':'color:var(--text-3)'}">−€${r.isBassa?round2(gapOggi-gapPer).toFixed(2):'0.00'}</td>
+      <td style="${r.isBassa?'color:#15803d;font-weight:700':'color:var(--text-3)'}">−€${r.isBassa?round2(gapOggi-gapPer).toFixed(2):'0,00'}</td>
       <td style="${r.isBassa?'color:#15803d;font-weight:700':'color:var(--text-3)'}">${r.isBassa?'+€'+extraPer.toFixed(2):' —'}</td>
       <td style="min-width:80px">
         <div title="Oggi" class="conv-bar" style="margin-bottom:2px"><div class="conv-bar-fill" style="width:${barW}%;background:#93c5fd"></div></div>
@@ -2056,3 +2048,5 @@ loadData();
 </script>
 </body>
 </html>
+
+
