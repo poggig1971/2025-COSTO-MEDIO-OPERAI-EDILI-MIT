@@ -378,7 +378,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
   <button class="tab-btn on" data-view="agg" onclick="switchView('agg')">Costi aggregati</button>
   <button class="tab-btn"    data-view="det" onclick="switchView('det')">Analisi per voce</button>
   <button class="tab-btn" data-view="map" onclick="switchView('map')">🗺️ Mappa Italia</button>
-  <button class="tab-btn" data-view="convergenza" onclick="switchView('convergenza')" style="display:none">
+  <button class="tab-btn" data-view="convergenza" onclick="switchView('convergenza')" style="display:none"></button>
   <button class="tab-btn" data-view="ccnl" onclick="switchView('ccnl')">Consulta CCNL</button>
       
   <div class="tab-bar-sep"></div>
@@ -663,6 +663,21 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
         </table>
       </div>
     </div>
+  </div>
+</div>
+
+
+<div id="view-ccnl" class="view-section">
+  <div style="padding:24px">
+    
+    <div style="font-size:14px;font-weight:700;color:var(--blue);margin-bottom:10px">
+      📘 Consultazione CCNL Edilizia
+    </div>
+
+    <div id="ccnl-container">
+      <!-- qui verrà caricato il contenuto dinamico -->
+    </div>
+
   </div>
 </div>
 </div><!-- /app-body -->
@@ -1271,6 +1286,11 @@ function switchView(v){
     if(cvEl) cvEl.scrollTop=0;
     ensureDataLoaded(()=>calcolaConvergenza());
   }
+  if (view === 'ccnl') {
+  if (typeof initCCNL === 'function') {
+    initCCNL();
+  }
+}
 }
 
 /* ═══ PRINT ══════════════════════════════════════════════════════════════════ */
@@ -2086,6 +2106,7 @@ function calcolaConvergenza() {
 
 loadData();
 </script>
+<script src="ccnl.js"></script>
 </body>
 </html>
 
