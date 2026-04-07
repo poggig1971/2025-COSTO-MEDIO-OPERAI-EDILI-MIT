@@ -1286,11 +1286,9 @@ function switchView(v){
     if(cvEl) cvEl.scrollTop=0;
     ensureDataLoaded(()=>calcolaConvergenza());
   }
-  if (view === 'ccnl') {
-  if (typeof initCCNL === 'function') {
-    initCCNL();
+  if (v === 'ccnl') {
+    if (typeof initCCNL === 'function') initCCNL();
   }
-}
 }
 
 /* ═══ PRINT ══════════════════════════════════════════════════════════════════ */
@@ -2109,5 +2107,8 @@ loadData();
 <script src="ccnl.js"></script>
 </body>
 </html>
+
+
+
 
 
