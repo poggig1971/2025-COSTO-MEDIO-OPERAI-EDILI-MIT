@@ -530,7 +530,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       </select>
       <div style="display:flex;align-items:center;gap:6px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:6px;padding:5px 12px;cursor:default;flex-shrink:0">
         <span style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;white-space:nowrap">⬇️</span>
-        <select id="map-component" onchange="renderMap()" style="border:none;background:transparent;font-family:var(--font);font-size:12px;color:#1e3a8a;font-weight:600;cursor:pointer;outline:none;padding:0 2px">
+        <select id="map-component" onchange="switchMapComp(this.value)" style="border:none;background:transparent;font-family:var(--font);font-size:12px;color:#1e3a8a;font-weight:600;cursor:pointer;outline:none;padding:0 2px">
           <option value="cmo" selected>CMO totale €/h</option>
           <option value="trasp">Trasporto €/h</option>
           <option value="mensa">Mensa €/h</option>
@@ -1038,6 +1038,7 @@ function switchCat(key){
   document.getElementById('header-link').href=C.link;
   document.getElementById('header-link').textContent=C.linkText;
   renderLvBtns();
+  updateMapSelects();
   document.querySelectorAll('.area-btn').forEach(b=>b.classList.toggle('on',C.aFilter.has(b.dataset.a)));
   document.querySelectorAll('#mseg .mode-btn').forEach((b,i)=>b.classList.toggle('on',['province','regioni'][i]===C.mode));
   if(!C.loaded){
@@ -1068,6 +1069,38 @@ function renderLvBtns(){
     if(!row) return;
     row.innerHTML=C.LVS.map((lv,i)=>`<button class="lv-btn${curLv===lv?' on':''}" data-lv="${lv}" onclick="${fn}(this)">${C.LV_SHT[i]}</button>`).join('');
   });
+}
+
+/* ─── UPDATE MAP / CONVERGENZA / ANATOMIA LEVEL SELECTS ───────────────── */
+function updateMapSelects(){
+  const isImp = C.key==='impiegati';
+  const lvs = C.LVS, lbls = C.LV_LBL;
+  // Etichette descrittive per operai
+  const opDesc = ['operaio comune','qualificato','specializzato','spec. superiore'];
+  // map-lv
+  const mapLv = document.getElementById('map-lv');
+  if(mapLv){
+    const cur = mapLv.value;
+    mapLv.innerHTML = lvs.map((lv,i)=>`<option value="${lv}">${lbls[i]}${!isImp?' — '+opDesc[i]:''}</option>`).join('');
+    mapLv.value = lvs.includes(cur) ? cur : lvs[0];
+  }
+  // cv-lv (convergenza)
+  const cvLv = document.getElementById('cv-lv');
+  if(cvLv){
+    const cur = cvLv.value;
+    cvLv.innerHTML = lvs.map((lv,i)=>`<option value="${lv}">${lbls[i]}${!isImp?' — '+opDesc[i]:''}</option>`).join('');
+    cvLv.value = lvs.includes(cur) ? cur : (lvs.includes('lv3')?'lv3':lvs[0]);
+  }
+  // cv-lv label
+  const cvLabel = cvLv?.closest('.conv-fld')?.querySelector('label');
+  if(cvLabel) cvLabel.textContent = isImp ? 'Livello impiegati' : 'Livello operai';
+  // anat-lv
+  const anatLv = document.getElementById('anat-lv');
+  if(anatLv){
+    const cur = anatLv.value;
+    anatLv.innerHTML = lvs.map((lv,i)=>`<option value="${lv}">${lbls[i]}</option>`).join('');
+    anatLv.value = lvs.includes(cur) ? cur : lvs[0];
+  }
 }
 
 /* ═══ ITEMS + BENCHMARK ═════════════════════════════════════════════════════ */
@@ -1335,6 +1368,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
 
 /* ═══ INIT ═════════════════════════════════════════════════════════════════ */
 renderLvBtns();
+updateMapSelects();
 
 /* ═══ MAPPA ITALIA ══════════════════════════════════════════════════════ */
 const MAP_TOPO_PROV = 'https://cdn.jsdelivr.net/gh/openpolis/geojson-italy@master/topojson/limits_IT_provinces.topo.json';
@@ -1645,10 +1679,8 @@ function renderMap() {
   const p05 = valSorted[Math.floor(valSorted.length*0.05)] ?? vMin;
   const p95 = valSorted[Math.floor(valSorted.length*0.95)] ?? vMax;
   const colorScale = getGradient(grad).domain([p05, p95]).clamp(true);
-  const lvIdx = {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
-  const lvLabel = ['1° livello','2° livello','3° livello','4° livello'][lvIdx];
-
-  // Legenda
+  const lvIdx = C.LVS.indexOf(lv);
+  const lvLabel = C.LV_LBL[lvIdx] || lv;
   document.getElementById('map-legend-bar').style.background =
     grad==='blu' ? 'linear-gradient(to right,#dbeafe,#1e40af)' :
     grad==='cmo' ? 'linear-gradient(to right,#FFF7ED,#C2410C)' :
@@ -1769,8 +1801,8 @@ function showMapSidebar(f, lv, lvLabel, colorScale) {
 function mapClickFeature(name) {
   const svg = d3.select('#italy-svg');
   const lv   = document.getElementById('map-lv')?.value || 'lv3';
-  const lvIdx = {lv1:0,lv2:1,lv3:2,lv4:3}[lv];
-  const lvLabel = ['1° livello','2° livello','3° livello','4° livello'][lvIdx];
+  const lvIdx = C.LVS.indexOf(lv);
+  const lvLabel = C.LV_LBL[lvIdx] || lv;
   const grad = document.getElementById('map-gradient')?.value || 'rg';
   const mode = document.getElementById('map-view-mode')?.value || 'province';
   const geo = mode==='province' ? mapGeoProvince : mapGeoRegioni;
@@ -1863,7 +1895,7 @@ async function initAnatomia() {
 }
 
 function renderAnatomia() {
-  if(!mapLoaded || !DET_LOADED) return;
+  if(!mapLoaded || !C.detLoaded) return;
   const lv  = document.getElementById('anat-lv')?.value || 'lv1';
   const cfg = ANAT_LAYERS[anatLayer] || ANAT_LAYERS.trasp;
   const isPercent = anatLayer === 'ce';
@@ -1973,8 +2005,9 @@ function calcolaConvergenza() {
     const cmoNow = d[lv] || 0;
     if(!cmoNow) return;
     const isBassa = cmoNow < soglia;
-    const parMap = {lv1:100,lv2:117,lv3:130,lv4:140};
-    const par = parMap[lv]||100;
+    const parMapOp  = {lv1:100,lv2:117,lv3:130,lv4:140};
+    const parMapImp = {lv1:100,lv2:113,lv3:127,lv4:137,lv5:155,lv6:175,lv7:210,lv8:255};
+    const par = (C.key==='impiegati' ? parMapImp[lv] : parMapOp[lv]) || 100;
     const deltaOraFlat = round2((flat * par/100) / 173);
     const deltaOraPerc = isBassa
       ? round2((flat * (1 + percEx/100) * par/100) / 173)
@@ -2053,6 +2086,8 @@ loadData();
 </script>
 </body>
 </html>
+
+
 
 
 
