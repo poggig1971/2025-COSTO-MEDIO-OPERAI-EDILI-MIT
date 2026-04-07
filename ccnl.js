@@ -10,24 +10,118 @@ let ccnlAiContextArts = []; // articoli passati all'AI
 let ccnlAiHistory = []; // storico chat AI
 let ccnlSearchTimer = null;
 
-function initCCNL() {
-  // Costruisci i bottoni temi
-  const temiEl = document.getElementById('ccnl-temi');
-  if(!temiEl) return;
-  temiEl.innerHTML = CCNL_TEMI.map(t => `
-    <button onclick="ccnlOpenTema('${t.id}')"
-      style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--g50);border:1px solid var(--g200);border-radius:7px;cursor:pointer;text-align:left;transition:all .15s;width:100%"
-      onmouseover="this.style.background='var(--blu-pale)';this.style.borderColor='var(--blu)'"
-      onmouseout="this.style.background='var(--g50)';this.style.borderColor='var(--g200)'">
-      <span style="font-size:16px;flex-shrink:0">${t.icon}</span>
-      <div>
-        <div style="font-size:12px;font-weight:600;color:var(--g900)">${t.label}</div>
-        <div style="font-size:10px;color:var(--g500);margin-top:1px;line-height:1.3">${t.desc}</div>
+function buildCCNLShell() {
+  const view = document.getElementById('view-ccnl');
+  if (!view) return;
+
+  view.innerHTML = `
+    <div style="padding:24px">
+      <div style="font-size:28px;font-weight:800;color:var(--blue);margin-bottom:18px">
+        📘 Consultazione CCNL Edilizia
       </div>
-    </button>`).join('');
-  renderCCNLList(Object.values(CCNL_ARTS));
+
+      <div style="display:flex;gap:20px;align-items:flex-start">
+
+        <div style="width:320px;flex-shrink:0">
+
+          <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:10px">
+              Ricerca
+            </div>
+
+            <div style="position:relative">
+              <input
+                id="ccnl-search"
+                type="text"
+                placeholder="Cerca articolo o parola chiave..."
+                oninput="ccnlSearch(this.value)"
+                style="width:100%;padding:10px 12px;border:1px solid var(--border-med);border-radius:8px;font-family:var(--font);font-size:13px"
+              >
+              <div
+                id="ccnl-search-results"
+                style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:white;border:1px solid var(--border-med);border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.10);z-index:50;max-height:360px;overflow:auto"
+              ></div>
+            </div>
+          </div>
+
+          <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:10px">
+              Filtri rapidi
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="ccnlFilterCat('')" style="padding:7px 10px;border:1px solid var(--border-med);background:white;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600">Tutti</button>
+              <button onclick="ccnlFilterCat('O')" style="padding:7px 10px;border:1px solid var(--border-med);background:white;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600">Operai</button>
+              <button onclick="ccnlFilterCat('I')" style="padding:7px 10px;border:1px solid var(--border-med);background:white;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600">Impiegati</button>
+              <button onclick="ccnlFilterCat('C')" style="padding:7px 10px;border:1px solid var(--border-med);background:white;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600">Comuni</button>
+            </div>
+          </div>
+
+          <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:10px">
+              Temi
+            </div>
+            <div id="ccnl-temi" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </div>
+
+        <div style="flex:1;min-width:0">
+          <div id="ccnl-ai-card" style="display:none;background:white;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:10px">
+              Assistente CCNL
+            </div>
+
+            <div id="ccnl-ai-context-lbl" style="font-size:12px;color:var(--text-3);margin-bottom:10px"></div>
+
+            <div id="ccnl-ai-history" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;margin-bottom:10px"></div>
+
+            <div style="display:flex;gap:8px">
+              <input
+                id="ccnl-ai-inp"
+                type="text"
+                placeholder="Fai una domanda sugli articoli aperti..."
+                onkeydown="if(event.key==='Enter') ccnlAiSend()"
+                style="flex:1;padding:10px 12px;border:1px solid var(--border-med);border-radius:8px;font-family:var(--font);font-size:13px"
+              >
+              <button
+                id="ccnl-ai-btn"
+                onclick="ccnlAiSend()"
+                style="padding:10px 14px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer"
+              >
+                Chiedi →
+              </button>
+            </div>
+          </div>
+
+          <div id="ccnl-articles-open"></div>
+          <div id="ccnl-art-list"></div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
+function initCCNL() {
+  buildCCNLShell();
+
+  const temiEl = document.getElementById('ccnl-temi');
+  if (!temiEl) return;
+
+  temiEl.innerHTML = CCNL_TEMI.map(t => `
+    <button onclick="ccnlOpenTema('${t.id}')"
+      style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:7px;cursor:pointer;text-align:left;transition:all .15s;width:100%"
+      onmouseover="this.style.background='#eff6ff';this.style.borderColor='#1e3a8a'"
+      onmouseout="this.style.background='#f9fafb';this.style.borderColor='#e5e7eb'">
+      <span style="font-size:16px;flex-shrink:0">${t.icon}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#111827">${t.label}</div>
+        <div style="font-size:10px;color:#6b7280;margin-top:1px;line-height:1.3">${t.desc}</div>
+      </div>
+    </button>
+  `).join('');
+
+  renderCCNLList(Object.values(CCNL_ARTS));
+}
 function renderCCNLList(arts) {
   const el = document.getElementById('ccnl-art-list');
   if(!el) return;
