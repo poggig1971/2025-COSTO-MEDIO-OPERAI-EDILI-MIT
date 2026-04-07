@@ -529,7 +529,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
         <option value="cmo">Arancio ANCE</option>
       </select>
       <div style="display:flex;align-items:center;gap:6px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:6px;padding:5px 12px;cursor:default;flex-shrink:0">
-        <span style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;white-space:nowrap">🔬 Componente</span>
+        <span style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;white-space:nowrap">⬇️⬇️</span>
         <select id="map-component" onchange="renderMap()" style="border:none;background:transparent;font-family:var(--font);font-size:12px;color:#1e3a8a;font-weight:600;cursor:pointer;outline:none;padding:0 2px">
           <option value="cmo" selected>CMO totale €/h</option>
           <option value="trasp">Trasporto €/h</option>
@@ -553,24 +553,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
         <button class="map-zoom-btn" onclick="mapZoom(0.77)" title="Zoom out">−</button>
       </div>
       <aside class="map-sidebar" id="map-sidebar">
-        <!-- COMPONENTE — dentro la sidebar sempre visibile -->
-        <div id="comp-selector-box" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:7px;padding:10px 12px;margin-bottom:14px;position:sticky;top:0;z-index:10">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1e3a8a;margin-bottom:6px">🔬 Componente</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="cmo" checked onchange="switchMapComp('cmo')"> CMO totale €/h
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="trasp" onchange="switchMapComp('trasp')"> 🚗 Trasporto €/h
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="mensa" onchange="switchMapComp('mensa')"> 🍽️ Mensa €/h
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#1e3a5f;font-weight:500">
-              <input type="radio" name="map-comp" value="ce" onchange="switchMapComp('ce')"> 🏗️ Cassa Edile %
-            </label>
-          </div>
-        </div>
+       
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:8px">Legenda</div>
         <div class="legend-bar" id="map-legend-bar"></div>
         <div class="legend-labels" id="map-legend-labels"><span>—</span><span>—</span><span>—</span></div>
