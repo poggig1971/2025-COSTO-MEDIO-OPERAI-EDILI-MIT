@@ -589,7 +589,7 @@ tr:hover td{background:var(--g50)}
           <div class="pg-accent accent-blu"></div>
           <div>
             <div class="pg-title">Consulta CCNL Edilizia</div>
-            <div class="pg-sub">Testo coordinato 21 febbraio 2025 · 109 articoli · Ricerca e assistente AI</div>
+            <div class="pg-sub">Testo coordinato 21 febbraio 2025 · 125 articoli · Ricerca full-text e tabelle ufficiali</div>
           </div>
         </div>
         <div style="font-size:11px;color:var(--g500)">CCNL Edilizia Industria · Rinnovo 21/02/2025</div>
@@ -612,38 +612,22 @@ tr:hover td{background:var(--g50)}
           <div style="margin-top:16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--g500);margin-bottom:8px">Sezione</div>
           <div style="display:flex;flex-direction:column;gap:4px">
             <button onclick="ccnlFilterCat('O')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">👷 Operai (Art. 1–39)</button>
-            <button onclick="ccnlFilterCat('I')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">💼 Impiegati (Art. 40–78)</button>
-            <button onclick="ccnlFilterCat('C')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">📑 Comuni (Art. 79–106)</button>
+            <button onclick="ccnlFilterCat('I')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">💼 Impiegati-Quadri (Art. 40–76)</button>
+            <button onclick="ccnlFilterCat('C')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">📑 Comuni (Art. 77–121)</button>
             <button onclick="ccnlFilterCat('')" class="btn btn-ghost btn-sm" style="justify-content:flex-start;font-size:12px">📖 Tutti gli articoli</button>
           </div>
+          <div style="margin-top:16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--g500);margin-bottom:8px">Documenti</div>
+          <div id="ccnl-docs" style="display:flex;flex-direction:column;gap:4px"></div>
         </div>
 
         <!-- CONTENUTO PRINCIPALE -->
         <div style="flex:1;min-width:0">
 
+          <!-- DOCUMENTO INLINE (premessa) -->
+          <div id="ccnl-doc-open" style="margin-bottom:16px"></div>
+
           <!-- ARTICOLI APERTI -->
           <div id="ccnl-articles-open" style="margin-bottom:16px"></div>
-
-          <!-- ASSISTENTE AI -->
-          <div class="card" id="ccnl-ai-card" style="display:none;border-left:3px solid var(--tiffany)">
-            <div class="card-hdr">
-              <div>
-                <div class="card-label" style="color:var(--tiffany)">Assistente AI — CCNL Edilizia</div>
-                <div class="card-title">Fai una domanda sul contratto</div>
-                <div class="card-sub" id="ccnl-ai-context-lbl">Basato sull'articolo selezionato</div>
-              </div>
-              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ccnl-ai-card').style.display='none'">✕ Chiudi</button>
-            </div>
-            <div id="ccnl-ai-history" style="max-height:280px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:10px"></div>
-            <div style="display:flex;gap:8px">
-              <input type="text" id="ccnl-ai-inp" placeholder="es. Quante ore di straordinario può fare un operaio?"
-                style="flex:1;padding:10px 13px;border:1.5px solid var(--g200);border-radius:7px;font-family:var(--font);font-size:13px;outline:none"
-                onkeydown="if(event.key==='Enter')ccnlAiSend()"
-                onfocus="this.style.borderColor='var(--tiffany)'" onblur="this.style.borderColor='var(--g200)'">
-              <button class="btn btn-tiffany" onclick="ccnlAiSend()" id="ccnl-ai-btn">Chiedi →</button>
-            </div>
-            <div style="font-size:10px;color:var(--g500);margin-top:8px">L'AI risponde solo sulla base del testo del CCNL visualizzato · Nessun dato esce dalla Suite</div>
-          </div>
 
           <!-- LISTA ARTICOLI -->
           <div id="ccnl-art-list"></div>
@@ -2069,4 +2053,6 @@ async function salvaScenario() {
 <script src="ccnl.js"></script>
 </body>
 </html>
+
+
 
