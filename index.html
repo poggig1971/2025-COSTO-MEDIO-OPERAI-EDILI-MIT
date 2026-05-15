@@ -350,9 +350,9 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       <button class="cat-btn"    data-cat="impiegati" onclick="switchCat('impiegati')">&#128188; Impiegati</button>
     </div>
     <div class="header-center">
-      <span class="header-title" id="header-title">Costo medio orario OPERAI 05/25 — DD23 26/03/26</span>
+      <span class="header-title" id="header-title">Costo medio orario OPERAI 05/25 — DD40 13/05/26</span>
       <span class="header-sub">Ministero del Lavoro &middot; CCNL Edilizia &middot; Elaborazione ANCE Piemonte VdA</span>
-      <a class="header-link" id="header-link" href="https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai" target="_blank" rel="noopener noreferrer">&#128202; Link Tab. ufficiali costo lavoro operai</a>
+      <a class="header-link" id="header-link" href="https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai-0" target="_blank" rel="noopener noreferrer">&#128202; Link Tab. ufficiali costo lavoro operai</a>
     </div>
   </div>
   <div class="header-right">
@@ -690,7 +690,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
     <div class="modal-body">
       <div class="modal-section">
         <div class="modal-section-title">Cos&#39;&#232; questa dashboard</div>
-        <div class="modal-row"><div class="modal-tag">Fonte dati</div><div class="modal-desc">Tabelle ufficiali del <strong>Ministero del Lavoro</strong> &#8212; Decreto Direttoriale n.&#160;23 del 26&#160;marzo&#160;2026. Operai e impiegati delle imprese edili (CCNL Edilizia Industria &#8212; rinnovo 21/02/2025).</div></div>
+        <div class="modal-row"><div class="modal-tag">Fonte dati</div><div class="modal-desc">Tabelle ufficiali del <strong>Ministero del Lavoro</strong> &#8212; Decreto Direttoriale n.&#160;40 del 13&#160;maggio&#160;2026. Operai e impiegati delle imprese edili (CCNL Edilizia Industria &#8212; rinnovo 21/02/2025).</div></div>
         <div class="modal-row"><div class="modal-tag">Switch categoria</div><div class="modal-desc">Il pulsante in alto a sinistra (<strong>Operai / Impiegati</strong>) cambia dataset. Operai: 4 livelli (1&#176;&#8211;4&#176;). Impiegati: 8 livelli (1&#176;&#8211;7&#176; + Quadri). I dati si caricano al primo accesso.</div></div>
         <div class="modal-row"><div class="modal-tag">Elaborazione</div><div class="modal-desc"><strong>ANCE Piemonte Valle d&#39;Aosta</strong> &#8212; Suite Negoziale disponibile tramite il pulsante in alto a destra.</div></div>
       </div>
@@ -717,7 +717,7 @@ const DETTAGLI_IMP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
       <div class="modal-section">
         <div class="modal-section-title">Aggiornamento dati</div>
         <div class="modal-row"><div class="modal-tag">Fogli Google</div><div class="modal-desc"><strong>Dati</strong> (aggregato operai) &middot; <strong>Dettagli</strong> (voci operai) &middot; <strong>DettagliImp</strong> (voci + aggregato impiegati). Nessuna modifica al file HTML. Mappa e Convergenza usano i dati gi&#224; caricati.</div></div>
-        <div class="modal-note">Dashboard elaborata da <strong>ANCE Piemonte Valle d&#39;Aosta</strong> &middot; Fonte: MIT &#8212; D.D. n.&#160;23 del 26&#160;marzo&#160;2026 &middot; CCNL Edilizia Industria 21/02/2025</div>
+        <div class="modal-note">Dashboard elaborata da <strong>ANCE Piemonte Valle d&#39;Aosta</strong> &middot; Fonte: MIT &#8212; D.D. n.&#160;40 del 13&#160;maggio&#160;2026 &middot; CCNL Edilizia Industria 21/02/2025</div>
       </div>
     </div>
   </div>
@@ -813,8 +813,8 @@ const IMP_DET_ROWS = [
 /* ═══ CATEGORY STATE OBJECTS ══════════════════════════════════════════════ */
 const CAT_OP = {
   key:'operai',
-  title:'Costo medio orario OPERAI 05/25 — DD23 26/03/26',
-  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai',
+  title:'Costo medio orario OPERAI 05/25 — DD40 13/05/26',
+  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-operai-0',
   linkText:'📊 Link Tab. ufficiali costo lavoro operai',
   RAW:[],DET_DATA:new Map(),detRegMap:new Map(),
   mode:'province',lv:'lv1',sel:new Set(),aFilter:new Set(['N']),
@@ -825,8 +825,8 @@ const CAT_OP = {
 };
 const CAT_IMP = {
   key:'impiegati',
-  title:'Costo medio orario IMPIEGATI — CCNL Edilizia 26/03/26',
-  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-impiegati',
+  title:'Costo medio orario IMPIEGATI — DD40 13/05/26',
+  link:'https://www.lavoro.gov.it/temi-e-priorita-rapporti-di-lavoro-e-relazioni-industriali/focus/tabelle-impiegati-0',
   linkText:'📊 Link Tab. ufficiali costo lavoro impiegati',
   RAW:[],DET_DATA:new Map(),detRegMap:new Map(),
   mode:'province',lv:'lv1',sel:new Set(),aFilter:new Set(['N']),
@@ -2101,6 +2101,11 @@ loadData();
 <script src="ccnl.js"></script>
 </body>
 </html>
+
+
+
+
+
 
 
 
